@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.ColorImage;
 import edu.wpi.first.wpilibj.image.NIVisionException;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Joystick;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -21,6 +22,11 @@ public class Robot1100 extends IterativeRobot
 {
     //Counts how many periodic cycles have passed.
     int m_count;
+
+
+    Joystick joystick_1;
+    Joystick joystick_2;
+
 
     double kScoreThreshold = .01;
     AxisCamera cam;
@@ -145,6 +151,9 @@ public class Robot1100 extends IterativeRobot
         m_count = 0;
 
         System.out.println("TeleOp Init");
+
+        joystick_1 = new Joystick(1);
+        joystick_2 = new Joystick(2);
     }
 
     /**
@@ -176,7 +185,13 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 5 == 0)
         {
             DashboardPacker.updateDashboard();
-            System.out.println("Packet Sent (TO)");
+            //System.out.println("Packet Sent (TO)");
+            
+            //System.out.println("1X: " + joystick_1.getX() + " 1Y: " + joystick_1.getY());
+            //System.out.println("2X: " + joystick_2.getX() + " 2Y: " + joystick_2.getY());
+
+            //System.out.println("1Z: " + joystick_1.getZ());
+           // System.out.println("2z: " + joystick_2.getZ());
         }
 
         //Runs periodically at 10Hz.

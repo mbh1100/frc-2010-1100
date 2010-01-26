@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.image.ColorImage;
 import edu.wpi.first.wpilibj.image.NIVisionException;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotDrive;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -27,6 +28,7 @@ public class Robot1100 extends IterativeRobot
     Joystick joystick_1;
     Joystick joystick_2;
 
+    RobotDrive drive;
 
     double kScoreThreshold = .01;
     AxisCamera cam;
@@ -45,6 +47,9 @@ public class Robot1100 extends IterativeRobot
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
         this.setPeriod(0.01);
         System.out.print("ROBOT STARTUP");
+
+        drive = new RobotDrive(1,5);
+
     }
 
     /**
@@ -163,6 +168,8 @@ public class Robot1100 extends IterativeRobot
     {
         m_count++;
         //System.out.println("TeleOp: "+ m_count);
+
+        drive.tankDrive(joystick_1, joystick_2);
 
         //Runs periodically at 100Hz
         {

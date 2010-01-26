@@ -49,7 +49,8 @@ public class Robot1100 extends IterativeRobot
         System.out.print("ROBOT STARTUP");
 
         drive = new RobotDrive(1,5);
-
+        //drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
+        //drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
     }
 
     /**
@@ -197,8 +198,12 @@ public class Robot1100 extends IterativeRobot
             //System.out.println("1X: " + joystick_1.getX() + " 1Y: " + joystick_1.getY());
             //System.out.println("2X: " + joystick_2.getX() + " 2Y: " + joystick_2.getY());
 
+            System.out.println ("Joystick 1" + " X = " + joystick_1.getX() + "Y = " + joystick_1.getY() + "Z = " + joystick_1.getZ());
+            System.out.println ("Joystick 2" + "X = " + joystick_2.getX() + "Y = " + joystick_2.getY() + "Z = " + joystick_2.getZ() );
+
+
             //System.out.println("1Z: " + joystick_1.getZ());
-           // System.out.println("2z: " + joystick_2.getZ());
+            //System.out.println("2z: " + joystick_2.getZ());
         }
 
         //Runs periodically at 10Hz.

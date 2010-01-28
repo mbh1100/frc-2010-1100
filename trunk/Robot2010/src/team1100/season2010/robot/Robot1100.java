@@ -39,8 +39,8 @@ public class Robot1100 extends IterativeRobot
     class ScaledPIDSource implements edu.wpi.first.wpilibj.PIDSource
     {
         edu.wpi.first.wpilibj.AnalogChannel m_src;
-        int m_scale;
-        ScaledPIDSource(edu.wpi.first.wpilibj.AnalogChannel source, int scale)
+        double m_scale;
+        ScaledPIDSource(edu.wpi.first.wpilibj.AnalogChannel source, double scale)
         {
             m_src = source;
             m_scale = scale;
@@ -70,11 +70,11 @@ public class Robot1100 extends IterativeRobot
         //drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
         //drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
         final int jagChan = 3;
+        final int potChan = 7;
         edu.wpi.first.wpilibj.Jaguar pwm;
         pwm = new edu.wpi.first.wpilibj.Jaguar(jagChan);
         ScaledPIDSource srcChan;
-        srcChan = new ScaledPIDSource(new edu.wpi.first.wpilibj.AnalogChannel(1, 7), -1);
-        // Hmmm pidSrc = new Hmmm(new edu.wpi.first.wpilibj.Encoder(1, 2));
+        srcChan = new ScaledPIDSource(new edu.wpi.first.wpilibj.AnalogChannel(potChan), 0.1);
         pid = new edu.wpi.first.wpilibj.PIDController(0.1, 0.001, 0.0, srcChan, pwm);
     }
 
@@ -187,9 +187,9 @@ public class Robot1100 extends IterativeRobot
         joystick_1 = new Joystick(1);
         joystick_2 = new Joystick(2);
 
-        pid.setInputRange(0, 1000);
+        pid.setInputRange(0, 100);
         pid.setOutputRange(-1, 1);
-        pid.setSetpoint(500);
+        pid.setSetpoint(50);
         pid.enable();
     }
 
@@ -201,7 +201,7 @@ public class Robot1100 extends IterativeRobot
         m_count++;
         //System.out.println("TeleOp: "+ m_count);
 
-        drive.tankDrive(joystick_1, joystick_2);
+        // drive.tankDrive(joystick_1, joystick_2);
 
         //Runs periodically at 100Hz
         {
@@ -229,12 +229,13 @@ public class Robot1100 extends IterativeRobot
             //System.out.println("1X: " + joystick_1.getX() + " 1Y: " + joystick_1.getY());
             //System.out.println("2X: " + joystick_2.getX() + " 2Y: " + joystick_2.getY());
 
-            System.out.println ("Joystick 1" + " X = " + joystick_1.getX() + "Y = " + joystick_1.getY() + "Z = " + joystick_1.getZ());
-            System.out.println ("Joystick 2" + "X = " + joystick_2.getX() + "Y = " + joystick_2.getY() + "Z = " + joystick_2.getZ() );
+            //System.out.println ("Joystick 1" + " X = " + joystick_1.getX() + "Y = " + joystick_1.getY() + "Z = " + joystick_1.getZ());
+            //System.out.println ("Joystick 2" + "X = " + joystick_2.getX() + "Y = " + joystick_2.getY() + "Z = " + joystick_2.getZ() );
 
 
             //System.out.println("1Z: " + joystick_1.getZ());
             //System.out.println("2z: " + joystick_2.getZ());
+            System.out.println("PID Error: " + pid.getError() + "; Result: " + pid.get());
         }
 
         //Runs periodically at 10Hz.
@@ -246,7 +247,7 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
-            System.out.println("PID Error is " + pid.getError());
+            pid.setSetpoint(joystick_1.getX() * 50.0 + 50.0);
         }
     }
 

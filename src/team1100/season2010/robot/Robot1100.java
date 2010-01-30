@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.AnalogChannel;
+import edu.wpi.first.wpilibj.Watchdog;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -32,13 +33,27 @@ public class Robot1100 extends IterativeRobot
     Joystick joystick_1;
     Joystick joystick_2;
 
-    RobotDrive drive;
+    //RobotDrive drive;
 
     final int POT_RANGE = 10;
+    final int DIGPORT = 4;
+    int prev_pot;
+    final double JOYSTICK_DEADBAND = .1;
+    final int MAX_POT_VALUE = 268;
+    final int MIN_POT_VALUE = 256;
+    double prev_speed;
+    double setpt_speed;
+    final double SPEED_ADJUST = .1;
+
+    Jaguar front_right_motor;
+    Jaguar front_left_motor;
+    Jaguar back_right_motor;
+    Jaguar back_left_motor;
+    Jaguar chain_rotation_motor;
 
    
 
-    Jaguar testMotor = new Jaguar(3);
+    //Jaguar testMotor = new Jaguar(3);
 
     //PIDController pid;
 
@@ -48,14 +63,13 @@ public class Robot1100 extends IterativeRobot
      */
     public void robotInit()
     {
-        Timer.delay(10.0);
-        
+       
 
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
         this.setPeriod(0.01);
         System.out.print("ROBOT STARTUP");
 
-        drive = new RobotDrive(1,5);
+        //drive = new RobotDrive(1,5);
         //drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
         //drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
 
@@ -130,6 +144,14 @@ public class Robot1100 extends IterativeRobot
 
         joystick_1 = new Joystick(1);
         joystick_2 = new Joystick(2);
+
+        front_right_motor = new Jaguar(DIGPORT,5);
+        front_left_motor = new Jaguar(DIGPORT,1);
+        //back_right_motor = new Jaguar(DIGPORT,3);
+        //back_left_motor = new Jaguar(DIGPORT,4);
+        ///chain_rotation_motor = new Jaguar(DIGPORT,5);
+
+        prev_pot = pot_1.getAverageValue();
     }
 
     /**
@@ -162,6 +184,7 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 20Hz.
         if (m_count % 5 == 0)
         {
+            Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
             //System.out.println("Packet Sent (TO)");
             
@@ -177,7 +200,7 @@ public class Robot1100 extends IterativeRobot
 
             //testMotor.set(joystick_2.getY());
 
-            System.out.println("POT:" + pot_1.getValue());
+           /* System.out.println("POT:" + pot_1.getValue());
 
             if(joystick_1.getMagnitude()>=.5)
             {
@@ -189,12 +212,14 @@ public class Robot1100 extends IterativeRobot
                 else testMotor.set(0);
             }
             else
-                testMotor.set(0);
+                testMotor.set(0);*/
 
             //System.out.println("X val: " + joystick_1.getX()/2);
             //System.out.println("\tPot v: " + pot_1.getValue());
             //System.out.println("\t\tPot.getPid()" + pot_1.pidGet());
+
             
+
 
         }
 
@@ -207,8 +232,82 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
+            //joystick_2 = throttle joystick for driving wheels
+            if(joystick_2.getY()>=JOYSTICK_DEADBAND || joystick_2.getY()<=-1 * JOYSTICK_DEADBAND)
+            {
+                setpt_speed = joystick_2.getY();
 
+                if(setpt_speed>prev_speed)
+                {
+                    front_right_motor.set(prev_speed+SPEED_ADJUST);
+                    front_left_motor.set(prev_speed+SPEED_ADJUST);
+                    //back_right_motor.set(prev_speed+SPEED_ADJUST);
+                    //back_left_motor.set(prev_speed+SPEED_ADJUST);
+                }
+
+                else
+                {
+                    front_right_motor.set(prev_speed-SPEED_ADJUST);
+                    front_left_motor.set(prev_speed-SPEED_ADJUST);
+                    //back_right_motor.set(prev_speed-SPEED_ADJUST);
+                    //back_left_motor.set(prev_speed-SPEED_ADJUST);
+                }
+
+                prev_speed=(front_right_motor.get()+front_left_motor.get())/2; //+back_right_motor.get()+back_left_motor.get())/4;
+            }
+            else
+            {
+                if(SPEED_ADJUST<=Math.abs(prev_speed))
+                {
+                    front_right_motor.set(0);
+                    front_left_motor.set(0);
+                    //back_right_motor.set(0);
+                    //back_left_motor.set(0);
+                }
+                else if(0<prev_speed)
+                {
+                    front_right_motor.set(prev_speed+SPEED_ADJUST);
+                    front_left_motor.set(prev_speed+SPEED_ADJUST);
+                    //back_right_motor.set(prev_speed+SPEED_ADJUST);
+                    //back_left_motor.set(prev_speed+SPEED_ADJUST);
+                }
+
+                else
+                {
+                    front_right_motor.set(prev_speed-SPEED_ADJUST);
+                    front_left_motor.set(prev_speed-SPEED_ADJUST);
+                    //back_right_motor.set(prev_speed-SPEED_ADJUST);
+                    //back_left_motor.set(prev_speed-SPEED_ADJUST);
+                }
+                prev_speed=(front_right_motor.get()+front_left_motor.get())/2; //+back_right_motor.get()+back_left_motor.get())/4;
+            }
+
+            prev_pot = pot_1.getAverageValue();
         }
+
+
+
+    }
+
+    public void motorSpeedAdjustment(double setpt_speed, double prev_speed)
+    {
+        if(setpt_speed>prev_speed)
+            for(double i=prev_speed; i<setpt_speed; i += SPEED_ADJUST)
+            {
+                front_right_motor.set(i);
+                front_left_motor.set(i);
+                back_right_motor.set(i);
+                back_left_motor.set(i);
+            }
+
+        else
+            for(double i= prev_speed; i>setpt_speed; i -= SPEED_ADJUST)
+            {
+                front_right_motor.set(i);
+                front_left_motor.set(i);
+                back_right_motor.set(i);
+                back_left_motor.set(i);
+            }
     }
 
     /**

@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.image.NIVisionException;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
-import edu.wpi.first.wpilibj.PIDController;
 
 
 /**
@@ -40,23 +39,28 @@ public class Robot1100 extends IterativeRobot
     {
         edu.wpi.first.wpilibj.AnalogChannel m_src;
         double m_scale;
-        ScaledPIDSource(edu.wpi.first.wpilibj.AnalogChannel source, double scale)
+        double m_bias;
+        ScaledPIDSource(edu.wpi.first.wpilibj.AnalogChannel source, double scale, double bias)
         {
             m_src = source;
             m_scale = scale;
+            m_bias = bias;
         }
         public double pidGet()
         {
-            return m_src.pidGet() * m_scale;
+            return m_src.pidGet() * m_scale + m_bias;
         }
     };
+
+    final int potChan = 7;
+    ScaledPIDSource srcChan = new ScaledPIDSource(new edu.wpi.first.wpilibj.AnalogChannel(potChan), -0.5, 250.0);
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
     public void robotInit()
     {
-        Timer.delay(10.0);
+        //Timer.delay(10.0);
         cam = AxisCamera.getInstance();
         cam.writeResolution(AxisCamera.ResolutionT.k320x240);
         cam.writeBrightness(0);
@@ -70,11 +74,8 @@ public class Robot1100 extends IterativeRobot
         //drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
         //drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
         final int jagChan = 3;
-        final int potChan = 7;
         edu.wpi.first.wpilibj.Jaguar pwm;
         pwm = new edu.wpi.first.wpilibj.Jaguar(jagChan);
-        ScaledPIDSource srcChan;
-        srcChan = new ScaledPIDSource(new edu.wpi.first.wpilibj.AnalogChannel(potChan), 0.1);
         pid = new edu.wpi.first.wpilibj.PIDController(0.1, 0.001, 0.0, srcChan, pwm);
     }
 
@@ -187,9 +188,8 @@ public class Robot1100 extends IterativeRobot
         joystick_1 = new Joystick(1);
         joystick_2 = new Joystick(2);
 
-        pid.setInputRange(0, 100);
-        pid.setOutputRange(-1, 1);
-        pid.setSetpoint(50);
+        // pid.setInputRange(0, 100);
+        // pid.setSetpoint(50);
         pid.enable();
     }
 
@@ -235,7 +235,15 @@ public class Robot1100 extends IterativeRobot
 
             //System.out.println("1Z: " + joystick_1.getZ());
             //System.out.println("2z: " + joystick_2.getZ());
-            System.out.println("PID Error: " + pid.getError() + "; Result: " + pid.get());
+            System.out.println("PID Error: " + pid.getError() +
+                    "; Result: " + pid.get() +
+                    "; Setpoint: "  + pid.getSetpoint() +
+                    "; Joystick: " + joystick_1.getX() +
+                    "; Input: " + srcChan.pidGet() +
+                    "; P: " + pid.getP() +
+                    "; I: " + pid.getI() +
+                    "; D: " + pid.getD());
+
         }
 
         //Runs periodically at 10Hz.
@@ -247,7 +255,11 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
-            pid.setSetpoint(joystick_1.getX() * 50.0 + 50.0);
+            // Joystick 1 Z-axis controls the center
+            // Joystick 2 Z-axis controls the range
+            pid.setSetpoint(joystick_1.getX() * 75.0 * joystick_2.getZ() +
+                    joystick_1.getZ() * 25);
+            // pid.setPID(joystick_1.getZ(), joystick_2.getZ(), 0.0);
         }
     }
 
@@ -257,7 +269,7 @@ public class Robot1100 extends IterativeRobot
     public void disabledInit()
     {
         m_count = 0;
-       // System.out.println("Disabled Init 1100 version");
+        System.out.println("Disabled Init 1100 version");
     }
 
     /**
@@ -289,7 +301,7 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 5 == 0)
         {
             DashboardPacker.updateDashboard();
-            System.out.println("Packet Sent (D)");
+            // System.out.println("Packet Sent (D)");
         }
 
         //Runs periodically at 10Hz.

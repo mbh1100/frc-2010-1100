@@ -243,32 +243,35 @@ public class Robot1100 extends IterativeRobot
 
 
             //find averaged direction to go to
-            if(joystick_1.getMagnitude()>JOYSTICK_DEADBAND)
-            {
-                avg_dir_val = avg_dir_val*NUM_DIR_ARRAY;
-                avg_dir_val -= dir_array[dir_array_index%NUM_DIR_ARRAY];
-                avg_dir_val+=joystick_1.getDirectionDegrees();
-                avg_dir_val = avg_dir_val/NUM_DIR_ARRAY;
-                dir_array[dir_array_index%NUM_DIR_ARRAY]=joystick_1.getDirectionDegrees();
-                dir_array_index++;
-            }
+            avg_dir_val = avg_dir_val*NUM_DIR_ARRAY;
+            avg_dir_val -= dir_array[dir_array_index%NUM_DIR_ARRAY];
+            avg_dir_val+=joystick_1.getX();
+            avg_dir_val = avg_dir_val/NUM_DIR_ARRAY;
+            dir_array[dir_array_index%NUM_DIR_ARRAY]=joystick_1.getX();
+            dir_array_index++;
 
             //avg_dir_val = setpoint *ANGLE*
             //pot_1.getAverageValue() = actual value
 
-            //assign angle setpoint based on potentiometer value
-            double avg_dir_setpt = 1024.0 / 360.0 * (avg_dir_val + 180);
+            //assign x-val setpoint based on potentiometer value
+            double avg_dir_setpt = 512.0 * (avg_dir_val + 1);
             double newspeed;
 
             if(avg_dir_setpt > pot_1.getAverageValue() + POT_DEADBAND)
-            {
                 newspeed = -CRM_SPEED;
-            }
             else if (avg_dir_setpt < pot_1.getAverageValue() - POT_DEADBAND)
-            {
                 newspeed = CRM_SPEED;
-            }
             else newspeed = 0;
+
+            if(pot_1.getAverageValue() >= POT_MAX + POT_DEADBAND)
+                    newspeed = -1;
+            else if(pot_1.getAverageValue() <= POT_MIN - POT_DEADBAND)
+                    newspeed = 1;
+            else if(pot_1.getAverageValue() >= POT_MAX - POT_DEADBAND)
+                newspeed = 0;
+            else if(pot_1.getAverageValue() <= POT_MIN + POT_DEADBAND)
+                newspeed = 0;
+
 
             System.out.println("Pot Val: " + pot_1.getAverageValue());
             System.out.println("\tTarget: " + avg_dir_setpt);

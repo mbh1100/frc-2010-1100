@@ -15,6 +15,8 @@ import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.Watchdog;
+import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Compressor;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -38,7 +40,7 @@ public class Robot1100 extends IterativeRobot
     final int POT_RANGE = 10;
     final int DIGPORT = 4;
     int prev_pot;
-    final double JOYSTICK_DEADBAND = .1;
+    final double JOYSTICK_DEADBAND = .5;
     final int MAX_POT_VALUE = 268;
     final int MIN_POT_VALUE = 256;
     double prev_speed;
@@ -51,7 +53,28 @@ public class Robot1100 extends IterativeRobot
     Jaguar back_left_motor;
     Jaguar chain_rotation_motor;
 
-   
+    double[] speed_array;
+    final int NUM_SPEED_ARRAY = 10;
+    int speed_array_index;
+    double avg_speed_val;
+
+    double[] dir_array;
+    final int NUM_DIR_ARRAY = 10;
+    int dir_array_index;
+    double avg_dir_val;
+
+    final int POT_MIN = 256;
+    final int POT_MAX = 768;
+    final int POT_DEADBAND = 10;
+
+    //CRM = chain_rotation_motor
+    double[] CRM_speed_array;
+    final int NUM_CRM_SPEED_ARRAY = 10;
+    int CRM_speed_array_index;
+    double avg_CRM_speed_val;
+
+    final double CRM_SPEED = .2;
+
 
     //Jaguar testMotor = new Jaguar(3);
 
@@ -76,6 +99,29 @@ public class Robot1100 extends IterativeRobot
         //pid = new PIDController(.1,.001,0, pot_1, testMotor);
         //pid.setInputRange(0, 1024);
 
+        speed_array = new double[NUM_SPEED_ARRAY];
+        speed_array_index = 0;
+        avg_speed_val = 0;
+
+        CRM_speed_array = new double[NUM_CRM_SPEED_ARRAY];
+        CRM_speed_array_index = 0;
+        avg_CRM_speed_val = 0;
+
+        dir_array = new double[NUM_DIR_ARRAY];
+        dir_array_index = 0;
+        avg_dir_val = 0;
+
+
+        joystick_1 = new Joystick(1);
+        joystick_2 = new Joystick(2);
+
+        front_right_motor = new Jaguar(DIGPORT,1);
+        front_left_motor = new Jaguar(DIGPORT,5);
+        //back_right_motor = new Jaguar(DIGPORT,3);
+        //back_left_motor = new Jaguar(DIGPORT,4);
+        chain_rotation_motor = new Jaguar(DIGPORT,3);
+
+        prev_pot = pot_1.getAverageValue();
     }
 
     /**
@@ -142,16 +188,7 @@ public class Robot1100 extends IterativeRobot
 
         System.out.println("TeleOp Initialized.");
 
-        joystick_1 = new Joystick(1);
-        joystick_2 = new Joystick(2);
-
-        front_right_motor = new Jaguar(DIGPORT,5);
-        front_left_motor = new Jaguar(DIGPORT,1);
-        //back_right_motor = new Jaguar(DIGPORT,3);
-        //back_left_motor = new Jaguar(DIGPORT,4);
-        ///chain_rotation_motor = new Jaguar(DIGPORT,5);
-
-        prev_pot = pot_1.getAverageValue();
+        
     }
 
     /**
@@ -186,41 +223,66 @@ public class Robot1100 extends IterativeRobot
         {
             Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
-            //System.out.println("Packet Sent (TO)");
-            
-            //System.out.println("1X: " + joystick_1.getX() + " 1Y: " + joystick_1.getY());
-            //System.out.println("2X: " + joystick_2.getX() + " 2Y: " + joystick_2.getY());
 
-            //System.out.println ("Joystick 1" + " X = " + joystick_1.getX() + "Y = " + joystick_1.getY() + "Z = " + joystick_1.getZ());
-            //System.out.println ("Joystick 2" + "X = " + joystick_2.getX() + "Y = " + joystick_2.getY() + "Z = " + joystick_2.getZ() );
+            //target speed determination
+
+            avg_speed_val = avg_speed_val*NUM_SPEED_ARRAY;
+            avg_speed_val -= speed_array[speed_array_index%NUM_SPEED_ARRAY];
+            avg_speed_val+=joystick_2.getY();
+            avg_speed_val = avg_speed_val/NUM_SPEED_ARRAY;
+            speed_array[speed_array_index%NUM_SPEED_ARRAY]=joystick_2.getY();
+            speed_array_index++;
+
+            //motor speed assignment
+            front_right_motor.set(-1*avg_speed_val);
+            front_left_motor.set(avg_speed_val);
+            //back_right_motor.set(avgval);
+            //back_left_motor.set(avgval);
 
 
-            //System.out.println("1Z: " + joystick_1.getZ());
-            //System.out.println("2z: " + joystick_2.getZ());
 
-            //testMotor.set(joystick_2.getY());
 
-           /* System.out.println("POT:" + pot_1.getValue());
-
-            if(joystick_1.getMagnitude()>=.5)
+            //find averaged direction to go to
+            if(joystick_1.getMagnitude()>JOYSTICK_DEADBAND)
             {
-                System.out.println("\tAngle: " + joystick_1.getDirectionDegrees());
-                if(pot_1.getValue() <= 1024.0 / 360.0 * (joystick_1.getDirectionDegrees() + 180) - POT_RANGE)
-                    testMotor.set(-1);
-                else if(pot_1.getValue() >= 1024.0 / 360.0 * (joystick_1.getDirectionDegrees() + 180) + POT_RANGE)
-                    testMotor.set(1);
-                else testMotor.set(0);
+                avg_dir_val = avg_dir_val*NUM_DIR_ARRAY;
+                avg_dir_val -= dir_array[dir_array_index%NUM_DIR_ARRAY];
+                avg_dir_val+=joystick_1.getDirectionDegrees();
+                avg_dir_val = avg_dir_val/NUM_DIR_ARRAY;
+                dir_array[dir_array_index%NUM_DIR_ARRAY]=joystick_1.getDirectionDegrees();
+                dir_array_index++;
             }
-            else
-                testMotor.set(0);*/
 
-            //System.out.println("X val: " + joystick_1.getX()/2);
-            //System.out.println("\tPot v: " + pot_1.getValue());
-            //System.out.println("\t\tPot.getPid()" + pot_1.pidGet());
+            //avg_dir_val = setpoint *ANGLE*
+            //pot_1.getAverageValue() = actual value
 
-            
+            //assign angle setpoint based on potentiometer value
+            double avg_dir_setpt = 1024.0 / 360.0 * (avg_dir_val + 180);
+            double newspeed;
 
+            if(avg_dir_setpt > pot_1.getAverageValue() + POT_DEADBAND)
+            {
+                newspeed = -CRM_SPEED;
+            }
+            else if (avg_dir_setpt < pot_1.getAverageValue() - POT_DEADBAND)
+            {
+                newspeed = CRM_SPEED;
+            }
+            else newspeed = 0;
 
+            System.out.println("Pot Val: " + pot_1.getAverageValue());
+            System.out.println("\tTarget: " + avg_dir_setpt);
+
+            //CRM = chain_rotation_motor
+            //find averaged speed for CRM in order to not blow it out
+            avg_CRM_speed_val = avg_CRM_speed_val*NUM_CRM_SPEED_ARRAY;
+            avg_CRM_speed_val -= CRM_speed_array[CRM_speed_array_index%NUM_CRM_SPEED_ARRAY];
+            avg_CRM_speed_val += newspeed;
+            avg_CRM_speed_val = avg_CRM_speed_val/NUM_CRM_SPEED_ARRAY;
+            CRM_speed_array[CRM_speed_array_index%NUM_CRM_SPEED_ARRAY] = newspeed;
+            CRM_speed_array_index++;
+
+            chain_rotation_motor.set(avg_CRM_speed_val);
         }
 
         //Runs periodically at 10Hz.
@@ -232,83 +294,14 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
-            //joystick_2 = throttle joystick for driving wheels
-            if(joystick_2.getY()>=JOYSTICK_DEADBAND || joystick_2.getY()<=-1 * JOYSTICK_DEADBAND)
-            {
-                setpt_speed = joystick_2.getY();
 
-                if(setpt_speed>prev_speed)
-                {
-                    front_right_motor.set(prev_speed+SPEED_ADJUST);
-                    front_left_motor.set(prev_speed+SPEED_ADJUST);
-                    //back_right_motor.set(prev_speed+SPEED_ADJUST);
-                    //back_left_motor.set(prev_speed+SPEED_ADJUST);
-                }
-
-                else
-                {
-                    front_right_motor.set(prev_speed-SPEED_ADJUST);
-                    front_left_motor.set(prev_speed-SPEED_ADJUST);
-                    //back_right_motor.set(prev_speed-SPEED_ADJUST);
-                    //back_left_motor.set(prev_speed-SPEED_ADJUST);
-                }
-
-                prev_speed=(front_right_motor.get()+front_left_motor.get())/2; //+back_right_motor.get()+back_left_motor.get())/4;
-            }
-            else
-            {
-                if(SPEED_ADJUST<=Math.abs(prev_speed))
-                {
-                    front_right_motor.set(0);
-                    front_left_motor.set(0);
-                    //back_right_motor.set(0);
-                    //back_left_motor.set(0);
-                }
-                else if(0<prev_speed)
-                {
-                    front_right_motor.set(prev_speed+SPEED_ADJUST);
-                    front_left_motor.set(prev_speed+SPEED_ADJUST);
-                    //back_right_motor.set(prev_speed+SPEED_ADJUST);
-                    //back_left_motor.set(prev_speed+SPEED_ADJUST);
-                }
-
-                else
-                {
-                    front_right_motor.set(prev_speed-SPEED_ADJUST);
-                    front_left_motor.set(prev_speed-SPEED_ADJUST);
-                    //back_right_motor.set(prev_speed-SPEED_ADJUST);
-                    //back_left_motor.set(prev_speed-SPEED_ADJUST);
-                }
-                prev_speed=(front_right_motor.get()+front_left_motor.get())/2; //+back_right_motor.get()+back_left_motor.get())/4;
-            }
-
-            prev_pot = pot_1.getAverageValue();
         }
 
 
 
     }
 
-    public void motorSpeedAdjustment(double setpt_speed, double prev_speed)
-    {
-        if(setpt_speed>prev_speed)
-            for(double i=prev_speed; i<setpt_speed; i += SPEED_ADJUST)
-            {
-                front_right_motor.set(i);
-                front_left_motor.set(i);
-                back_right_motor.set(i);
-                back_left_motor.set(i);
-            }
-
-        else
-            for(double i= prev_speed; i>setpt_speed; i -= SPEED_ADJUST)
-            {
-                front_right_motor.set(i);
-                front_left_motor.set(i);
-                back_right_motor.set(i);
-                back_left_motor.set(i);
-            }
-    }
+   
 
     /**
      * This function is called when the robot enters disabled mode.

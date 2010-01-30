@@ -34,12 +34,13 @@ public class Robot1100 extends IterativeRobot
 
     RobotDrive drive;
 
-    double kScoreThreshold = .01;
-    AxisCamera cam;
+    final int POT_RANGE = 10;
+
+   
 
     Jaguar testMotor = new Jaguar(3);
 
-    PIDController pid;
+    //PIDController pid;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -48,9 +49,7 @@ public class Robot1100 extends IterativeRobot
     public void robotInit()
     {
         Timer.delay(10.0);
-        cam = AxisCamera.getInstance();
-        cam.writeResolution(AxisCamera.ResolutionT.k320x240);
-        cam.writeBrightness(0);
+        
 
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
         this.setPeriod(0.01);
@@ -60,8 +59,8 @@ public class Robot1100 extends IterativeRobot
         //drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
         //drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
 
-        pid = new PIDController(.1,.001,0, pot_1, testMotor);
-        pid.setInputRange(0, 1024);
+        //pid = new PIDController(.1,.001,0, pot_1, testMotor);
+        //pid.setInputRange(0, 1024);
 
     }
 
@@ -127,7 +126,7 @@ public class Robot1100 extends IterativeRobot
     {
         m_count = 0;
 
-        System.out.println("TeleOp Init");
+        System.out.println("TeleOp Initialized.");
 
         joystick_1 = new Joystick(1);
         joystick_2 = new Joystick(2);
@@ -141,7 +140,7 @@ public class Robot1100 extends IterativeRobot
         m_count++;
         //System.out.println("TeleOp: "+ m_count);
 
-        drive.tankDrive(joystick_1, joystick_2);
+        //drive.tankDrive(joystick_1, joystick_2);
 
         //Runs periodically at 100Hz
         {
@@ -176,10 +175,26 @@ public class Robot1100 extends IterativeRobot
             //System.out.println("1Z: " + joystick_1.getZ());
             //System.out.println("2z: " + joystick_2.getZ());
 
-            testMotor.set(joystick_1.getX()/2);
+            //testMotor.set(joystick_2.getY());
 
-            System.out.println("X val: " + joystick_1.getX()/2);
-            System.out.println("Pot v: " + pot_1.getValue()/2048);
+            System.out.println("POT:" + pot_1.getValue());
+
+            if(joystick_1.getMagnitude()>=.5)
+            {
+                System.out.println("\tAngle: " + joystick_1.getDirectionDegrees());
+                if(pot_1.getValue() <= 1024.0 / 360.0 * (joystick_1.getDirectionDegrees() + 180) - POT_RANGE)
+                    testMotor.set(-1);
+                else if(pot_1.getValue() >= 1024.0 / 360.0 * (joystick_1.getDirectionDegrees() + 180) + POT_RANGE)
+                    testMotor.set(1);
+                else testMotor.set(0);
+            }
+            else
+                testMotor.set(0);
+
+            //System.out.println("X val: " + joystick_1.getX()/2);
+            //System.out.println("\tPot v: " + pot_1.getValue());
+            //System.out.println("\t\tPot.getPid()" + pot_1.pidGet());
+            
 
         }
 
@@ -252,7 +267,7 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 1/5 Hz.
         if (m_count % 500 == 0)
         {
-             System.out.println("Hello, world! in Disable mode...");
+            // System.out.println("Hello, world! in Disable mode...");
         }
     }
 }

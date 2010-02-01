@@ -9,17 +9,29 @@ package team1100.season2010.robot;
  *
  * @author mark
  */
-public class ScaledPIDSource implements edu.wpi.first.wpilibj.PIDSource
+class ScaledPIDSource implements edu.wpi.first.wpilibj.PIDSource
 {
-    edu.wpi.first.wpilibj.AnalogChannel m_src;
+    edu.wpi.first.wpilibj.PIDSource m_src;
     double m_scale;
-    ScaledPIDSource(edu.wpi.first.wpilibj.AnalogChannel source, double scale)
+    double m_bias;
+    ScaledPIDSource(edu.wpi.first.wpilibj.PIDSource source, double scale, double bias)
     {
         m_src = source;
         m_scale = scale;
+        m_bias = bias;
     }
     public double pidGet()
     {
-        return m_src.pidGet() * m_scale;
+        return m_src.pidGet() * m_scale + m_bias;
+    }
+
+    void setScale(double scale)
+    {
+        m_scale = scale;
+    }
+
+    void setBias(double bias)
+    {
+        m_bias = bias;
     }
 };

@@ -16,22 +16,24 @@ public class SteeringPID {
     final double kLinearPct = 2.0;
     final double kPidI = 0.001;
     final double kPidD = 0.0;
-    final int kOperatingRangePct = 50;
+    final int kOperatingRangePct = 20;
     final int kCenterPct = 50;
     final double kInChannelMin = 0.0;
     final double kInChannelMax = 1000.0;
+    final double kInWidth = kInChannelMax - kInChannelMin;
     final double kOutChannelMin = -1.0;
     final double kOutChannelMax = 1.0;
-    final double kInputBias = kInChannelMax/2.0;
+    final double kInputBias = 0;
 
     PIDSource m_in;
     PIDOutput m_out;
     PIDController m_pid;
-    ScaledPIDSource m_scaledIn;
+    PIDSource m_scaledIn;
+    PIDOutput m_scaledOut;
 
-    int m_rangeWidthPct;
-    double m_rangeWidth;
-    int m_rangeCenterPct;
+    int m_opRangePct = 20;
+    double m_operatingRange;
+    int m_rangeCenterPct = 50;
     double m_rangeCenter;
     double m_linearPct;
     double m_PidP;
@@ -45,12 +47,14 @@ public class SteeringPID {
      * connected to the sensing potentiometer for this device.
      * @param outputChannel - channel on the default digital output module
      * connected to the motor controller for this device.
+     * @param invertOutput - invert the polarity of the output value.
      */
 
-    public SteeringPID(int inputChannel, int outputChannel)
+    public SteeringPID(int inputChannel, int outputChannel, boolean invertOutput)
     {
         this(AnalogChannel.getDefaultAnalogModule(), inputChannel,
-                Jaguar.getDefaultDigitalModule(), outputChannel);
+                Jaguar.getDefaultDigitalModule(), outputChannel,
+                invertOutput);
     }
 
     /**
@@ -63,14 +67,16 @@ public class SteeringPID {
      * this device.
      * @param outputChannel - channel on the selected digital module connected
      * to the motor controller for this device.
+     * @param invertOutput - invert the polarity of the output value.
      */
     public SteeringPID(int inputSlot, int inputChannel,
-            int outputSlot, int outputChannel)
+            int outputSlot, int outputChannel, boolean invertOutput)
     {
         m_in = new AnalogChannel(inputSlot, inputChannel);
-        m_scaledIn = new ScaledPIDSource(m_in, -1, kInputBias);
+        m_scaledIn = new ScaledPIDSource(m_in, 1, kInputBias);
         m_out = new Jaguar(outputSlot, outputChannel);
-        m_pid = new PIDController(m_PidP, m_PidI, m_PidD, m_in, m_out);
+        m_scaledOut = new PIDOutputInverter(m_out, invertOutput);
+        m_pid = new PIDController(m_PidP, m_PidI, m_PidD, m_scaledIn, m_scaledOut);
         m_pid.setOutputRange(kOutChannelMin, kOutChannelMax);
 
         setOperatingRangePct(kOperatingRangePct);
@@ -84,7 +90,7 @@ public class SteeringPID {
      * entire range of input values; it is not affected by changes to the
      * operating range.
      */
-    void setLinearPct(double pct)
+    public void setLinearPct(double pct)
     {
        m_linearPct = pct/100;
        // initially compute P so the motor input is linear over the whole input range
@@ -99,14 +105,15 @@ public class SteeringPID {
      * Specify the portion of the input range in use.
      * @param width - percent of input range to use
      */
-    void setOperatingRangePct(int widthPct)
+    public void setOperatingRangePct(int widthPct)
     {
         // ignore invalid input
         if (widthPct > 100 || widthPct < 0) return;
-        if (widthPct/2 + m_rangeCenterPct > 100) return;
+        if (m_rangeCenterPct + widthPct/2 > 100) return;
+        if (m_rangeCenterPct - widthPct/2 < 0) return;
 
-        m_rangeWidthPct = widthPct;
-        m_rangeWidth = (kInChannelMax - kInChannelMin) * widthPct / 100;
+        m_opRangePct = widthPct;
+        m_operatingRange = kInWidth * widthPct / 100;
     }
 
     /**
@@ -115,23 +122,24 @@ public class SteeringPID {
      * the direction is centered (direction is 0);
      *
      */
-    void setCenterPct(int centerPct)
+    public void setCenterPct(int centerPct)
     {
         // ignore invalid input
         if (centerPct > 100 || centerPct < 0) return;
-        if (centerPct + m_rangeWidthPct/2 > 100) return;
+        if (centerPct + m_opRangePct/2 > 100) return;
+        if (centerPct - m_opRangePct/2 < 0) return;
 
         m_rangeCenterPct = centerPct;
-        m_rangeCenter = (kInChannelMax - kInChannelMin) * centerPct / 100;
+        m_rangeCenter = kInWidth * centerPct / 100;
     }
 
-    void setI(double i)
+    public void setI(double i)
     {
         m_PidI = i;
         m_pid.setPID(m_PidP, m_PidI, m_PidD);
     }
 
-    void setD(double d)
+    public void setD(double d)
     {
         m_PidD = d;
         m_pid.setPID(m_PidP, m_PidI, m_PidD);
@@ -143,14 +151,26 @@ public class SteeringPID {
      * is zero, the steering device will find the specified center.
      * @param Desired steering direction, range is -1.0 to +1.0
      */
-    void setDirection(double direction)
+    public void setDirection(double direction)
     {
-        m_pid.setSetpoint((direction * m_rangeWidth/2) + m_rangeCenter);
+        m_pid.setSetpoint((direction * m_operatingRange/2) + m_rangeCenter);
 
         if (!m_running)
         {
             m_pid.enable();
             m_running = true;
         }
+
+             System.out.println("PID Error: " + m_pid.getError() +
+                    "; Result: " + m_pid.get() +
+                    "; Setpoint: "  + m_pid.getSetpoint() +
+                    "; Joystick: " + direction +
+                    "; Input: " + m_in.pidGet() +
+                    "; P: " + m_pid.getP() +
+                    "; I: " + m_pid.getI() +
+                    "; D: " + m_pid.getD() +
+                    "; width: " + m_operatingRange +
+                    "; center: " + m_rangeCenter);
+
     }
 }

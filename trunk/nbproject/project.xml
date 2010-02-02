@@ -48,6 +48,16 @@
                 <location>build</location>
                 <build-target>jar-app</build-target>
             </export>
+            <export>
+                <type>folder</type>
+                <location>j2meclasses</location>
+                <build-target>jar-app</build-target>
+            </export>
+            <export>
+                <type>folder</type>
+                <location>suite</location>
+                <build-target>jar-app</build-target>
+            </export>
             <view>
                 <items>
                     <source-folder style="packages">

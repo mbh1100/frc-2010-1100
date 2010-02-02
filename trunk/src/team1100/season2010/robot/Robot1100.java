@@ -41,11 +41,11 @@ public class Robot1100 extends IterativeRobot
     final int DIGPORT = 4;
     int prev_pot;
     final double JOYSTICK_DEADBAND = .5;
-    final int MAX_POT_VALUE = 268;
-    final int MIN_POT_VALUE = 256;
     double prev_speed;
     double setpt_speed;
     final double SPEED_ADJUST = .1;
+
+    final int MOTOR_DIRECTION_ADJUST = -1;
 
     Jaguar front_right_motor;
     Jaguar front_left_motor;
@@ -63,8 +63,9 @@ public class Robot1100 extends IterativeRobot
     int dir_array_index;
     double avg_dir_val;
 
-    final int POT_MIN = 256;
-    final int POT_MAX = 768;
+    final int POT_MIN = 374;
+    final int POT_MAX = 579;
+    final int POT_CENTER = 483;
     final int POT_DEADBAND = 10;
 
     //CRM = chain_rotation_motor
@@ -224,6 +225,9 @@ public class Robot1100 extends IterativeRobot
             Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
 
+            System.out.println(pot_1.getAverageValue());
+            chain_rotation_motor.set(joystick_2.getY());
+            
             //target speed determination
 
             avg_speed_val = avg_speed_val*NUM_SPEED_ARRAY;
@@ -234,8 +238,8 @@ public class Robot1100 extends IterativeRobot
             speed_array_index++;
 
             //motor speed assignment
-            front_right_motor.set(-1*avg_speed_val);
-            front_left_motor.set(avg_speed_val);
+            front_right_motor.set(MOTOR_DIRECTION_ADJUST * avg_speed_val);
+            front_left_motor.set(MOTOR_DIRECTION_ADJUST * avg_speed_val);
             //back_right_motor.set(avgval);
             //back_left_motor.set(avgval);
 

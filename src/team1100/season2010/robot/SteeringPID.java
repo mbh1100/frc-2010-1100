@@ -23,12 +23,10 @@ public class SteeringPID {
     final double kInWidth = kInChannelMax - kInChannelMin;
     final double kOutChannelMin = -1.0;
     final double kOutChannelMax = 1.0;
-    final double kInputBias = 0;
 
     PIDSource m_in;
     PIDOutput m_out;
     PIDController m_pid;
-    PIDSource m_scaledIn;
     PIDOutput m_scaledOut;
 
     int m_opRangePct = 20;
@@ -73,10 +71,9 @@ public class SteeringPID {
             int outputSlot, int outputChannel, boolean invertOutput)
     {
         m_in = new AnalogChannel(inputSlot, inputChannel);
-        m_scaledIn = new ScaledPIDSource(m_in, 1, kInputBias);
         m_out = new Jaguar(outputSlot, outputChannel);
         m_scaledOut = new PIDOutputInverter(m_out, invertOutput);
-        m_pid = new PIDController(m_PidP, m_PidI, m_PidD, m_scaledIn, m_scaledOut);
+        m_pid = new PIDController(m_PidP, m_PidI, m_PidD, m_in, m_scaledOut);
         m_pid.setOutputRange(kOutChannelMin, kOutChannelMax);
 
         setOperatingRangePct(kOperatingRangePct);

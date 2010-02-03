@@ -76,6 +76,8 @@ public class Robot1100 extends IterativeRobot
 
     final double CRM_SPEED = .2;
 
+    // mbh code
+    // SteeringPID steering;
 
     //Jaguar testMotor = new Jaguar(3);
 
@@ -123,6 +125,14 @@ public class Robot1100 extends IterativeRobot
         chain_rotation_motor = new Jaguar(DIGPORT,3);
 
         prev_pot = pot_1.getAverageValue();
+
+        /* mbh code
+        final int steeringPot = 7;
+        final int steeringJag = 3;
+        steering = new SteeringPID(steeringPot, steeringJag, true);
+        steering.setCenterPct(44);
+        steering.setLinearPct(3);
+         */
     }
 
     /**
@@ -227,7 +237,7 @@ public class Robot1100 extends IterativeRobot
 
             System.out.println(pot_1.getAverageValue());
             chain_rotation_motor.set(joystick_2.getY());
-            
+
             //target speed determination
 
             avg_speed_val = avg_speed_val*NUM_SPEED_ARRAY;
@@ -290,6 +300,9 @@ public class Robot1100 extends IterativeRobot
             CRM_speed_array_index++;
 
             chain_rotation_motor.set(avg_CRM_speed_val);
+
+            // mbh code
+            // steering.setDirection(joystick_1.getX());
         }
 
         //Runs periodically at 10Hz.
@@ -348,7 +361,7 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 5 == 0)
         {
             DashboardPacker.updateDashboard();
-            System.out.println("Packet Sent (D)");
+            //System.out.println("Packet Sent (D)");
         }
 
         //Runs periodically at 10Hz.

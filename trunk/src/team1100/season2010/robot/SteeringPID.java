@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.PIDController;
 public class SteeringPID {
 
     final double kLinearPct = 2.0;
-    final double kPidI = 0.001;
+    final double kPidI = 0.01;
     final double kPidD = 0.0;
     final int kOperatingRangePct = 20;
     final int kCenterPct = 50;
@@ -31,7 +31,7 @@ public class SteeringPID {
 
     int m_opRangePct = 20;
     double m_operatingRange;
-    int m_rangeCenterPct = 50;
+    double m_rangeCenterPct = 50.0;
     double m_rangeCenter;
     double m_linearPct;
     double m_PidP;
@@ -119,7 +119,7 @@ public class SteeringPID {
      * the direction is centered (direction is 0);
      *
      */
-    public void setCenterPct(int centerPct)
+    public void setCenterPct(double centerPct)
     {
         // ignore invalid input
         if (centerPct > 100 || centerPct < 0) return;
@@ -127,7 +127,7 @@ public class SteeringPID {
         if (centerPct - m_opRangePct/2 < 0) return;
 
         m_rangeCenterPct = centerPct;
-        m_rangeCenter = kInWidth * centerPct / 100;
+        m_rangeCenter = kInWidth * centerPct / 100.0;
     }
 
     public void setI(double i)
@@ -158,7 +158,8 @@ public class SteeringPID {
             m_running = true;
         }
 
-             System.out.println("PID Error: " + m_pid.getError() +
+        /*
+           /  System.out.println("PID Error: " + m_pid.getError() +
                     "; Result: " + m_pid.get() +
                     "; Setpoint: "  + m_pid.getSetpoint() +
                     "; Joystick: " + direction +
@@ -168,6 +169,8 @@ public class SteeringPID {
                     "; D: " + m_pid.getD() +
                     "; width: " + m_operatingRange +
                     "; center: " + m_rangeCenter);
+         *
+         */
 
     }
 }

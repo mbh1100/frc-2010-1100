@@ -30,7 +30,8 @@ public class Robot1100 extends IterativeRobot
     //Counts how many periodic cycles have passed.
     int m_count;
 
-    AnalogChannel pot_1 = new AnalogChannel(7);
+    // crm code
+    // AnalogChannel pot_1 = new AnalogChannel(7);
 
     Joystick joystick_1;
     Joystick joystick_2;
@@ -77,11 +78,9 @@ public class Robot1100 extends IterativeRobot
     final double CRM_SPEED = .2;
 
     // mbh code
-    // SteeringPID steering;
+    SteeringPID steering;
 
-    //Jaguar testMotor = new Jaguar(3);
-
-    //PIDController pid;
+    AxisCamera cam;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -89,8 +88,6 @@ public class Robot1100 extends IterativeRobot
      */
     public void robotInit()
     {
-       
-
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
         this.setPeriod(0.01);
         System.out.print("ROBOT STARTUP");
@@ -122,17 +119,19 @@ public class Robot1100 extends IterativeRobot
         front_left_motor = new Jaguar(DIGPORT,5);
         //back_right_motor = new Jaguar(DIGPORT,3);
         //back_left_motor = new Jaguar(DIGPORT,4);
-        chain_rotation_motor = new Jaguar(DIGPORT,3);
+        // chain_rotation_motor = new Jaguar(DIGPORT,3);
+        // crm code
+        //prev_pot = pot_1.getAverageValue();
 
-        prev_pot = pot_1.getAverageValue();
+        cam = AxisCamera.getInstance();
 
-        /* mbh code
+        /* mbh code */
         final int steeringPot = 7;
         final int steeringJag = 3;
         steering = new SteeringPID(steeringPot, steeringJag, true);
-        steering.setCenterPct(44);
+        steering.setCenterPct(50.6);
         steering.setLinearPct(3);
-         */
+         /* end mbh code*/
     }
 
     /**
@@ -235,9 +234,11 @@ public class Robot1100 extends IterativeRobot
             Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
 
+            /* crm code
             System.out.println(pot_1.getAverageValue());
             chain_rotation_motor.set(joystick_2.getY());
-
+            */
+            
             //target speed determination
 
             avg_speed_val = avg_speed_val*NUM_SPEED_ARRAY;
@@ -254,7 +255,7 @@ public class Robot1100 extends IterativeRobot
             //back_left_motor.set(avgval);
 
 
-
+            /* crm code
 
             //find averaged direction to go to
             avg_dir_val = avg_dir_val*NUM_DIR_ARRAY;
@@ -300,9 +301,12 @@ public class Robot1100 extends IterativeRobot
             CRM_speed_array_index++;
 
             chain_rotation_motor.set(avg_CRM_speed_val);
+             *
+             * end crm code
+             */
 
             // mbh code
-            // steering.setDirection(joystick_1.getX());
+            steering.setDirection(joystick_1.getX());
         }
 
         //Runs periodically at 10Hz.
@@ -314,7 +318,10 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
-
+            if (cam.freshImage())
+            {
+                System.out.println("Got a camera image!");
+            }
         }
 
 

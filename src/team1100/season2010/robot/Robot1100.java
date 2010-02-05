@@ -17,6 +17,9 @@ import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.Dashboard;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -79,6 +82,7 @@ public class Robot1100 extends IterativeRobot
 
     // mbh code
     SteeringPID steering;
+    Kicker kicker;
 
     AxisCamera cam;
 
@@ -131,6 +135,8 @@ public class Robot1100 extends IterativeRobot
         steering = new SteeringPID(steeringPot, steeringJag, true);
         steering.setCenterPct(50.6);
         steering.setLinearPct(3);
+
+        kicker = new Kicker();
          /* end mbh code*/
     }
 
@@ -307,6 +313,32 @@ public class Robot1100 extends IterativeRobot
 
             // mbh code
             steering.setDirection(joystick_1.getX());
+
+            if (joystick_1.getTop())
+            {
+                if (joystick_1.getZ() > 0 )
+                {
+                    System.out.println("entering hard kick mode");
+                    kicker.setKickMode(Kicker.kickHard);
+                }
+                else
+                {
+                    System.out.println("entering soft kick mode");
+                    kicker.setKickMode(Kicker.kickSoft);
+                }
+            }
+
+            if (kicker.isReady())
+            {
+                // light the 'armed' light.
+                DriverStation.getInstance().setDigitalOut(1, true);
+                // kick
+                if (joystick_1.getTrigger())
+                {
+                    kicker.kick();
+                    DriverStation.getInstance().setDigitalOut(1, false);
+                }
+            }
         }
 
         //Runs periodically at 10Hz.

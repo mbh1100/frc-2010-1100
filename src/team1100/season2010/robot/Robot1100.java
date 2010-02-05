@@ -84,6 +84,11 @@ public class Robot1100 extends IterativeRobot
     SteeringPID steering;
     Kicker kicker;
 
+    boolean m_triggerPulled = false;
+    boolean m_topPushed = false;
+    int m_kickerTestCycle = 0;
+    int m_kickerTestIndex = 0;
+
     AxisCamera cam;
 
     /**
@@ -137,6 +142,7 @@ public class Robot1100 extends IterativeRobot
         steering.setLinearPct(3);
 
         kicker = new Kicker();
+        // kicker.arm();
          /* end mbh code*/
     }
 
@@ -313,7 +319,7 @@ public class Robot1100 extends IterativeRobot
 
             // mbh code
             steering.setDirection(joystick_1.getX());
-
+/*
             if (joystick_1.getTop())
             {
                 if (joystick_1.getZ() > 0 )
@@ -339,6 +345,77 @@ public class Robot1100 extends IterativeRobot
                     DriverStation.getInstance().setDigitalOut(1, false);
                 }
             }
+*/
+            // kicker tests
+            if (joystick_1.getTop() && !m_topPushed)
+            {
+                m_topPushed = true;
+                ++m_kickerTestCycle;
+                switch (m_kickerTestCycle)
+                {
+                    case 1:
+                        System.out.println("Open the latch");
+                        m_kickerTestIndex = Kicker.kTestOpenLatch;
+                        break;
+                    case 2:
+                        System.out.println("Close the latch");
+                        m_kickerTestIndex = Kicker.kTestCloseLatch;
+                        break;
+                    case 3:
+                        System.out.println("Idle Main");
+                        m_kickerTestIndex = Kicker.kTestMainIdle;
+                        break;
+                    case 4:
+                        System.out.println("Pull Main");
+                        m_kickerTestIndex = Kicker.kTestMainPull;
+                        break;
+                    case 5:
+                        System.out.println("Push Main");
+                        m_kickerTestIndex = Kicker.kTestMainPush;
+                        break;
+                    case 6:
+                        System.out.println("open valve 3B");
+                        m_kickerTestIndex = Kicker.kTestPullCharge;
+                        break;
+                    case 7:
+                        System.out.println("open valve 3A");
+                        m_kickerTestIndex = Kicker.kTestPullVent;
+                        break;
+                    case 8:
+                        System.out.println("open valve 1B");
+                        m_kickerTestIndex = Kicker.kTestPullMain;
+                        break;
+                    case 9:
+                        System.out.println("open valve 1A");
+                        m_kickerTestIndex = Kicker.kTestPushMain;
+                        break;
+                    case 10:
+                        System.out.println("open valve 2B");
+                        m_kickerTestIndex = Kicker.kTestPullLatch;
+                        break;
+                    case 11:
+                        System.out.println("open valve 2A");
+                        m_kickerTestIndex = Kicker.kTestPushLatch;
+                        m_kickerTestCycle = 0;
+                        break;
+                }
+            }
+            if (!joystick_1.getTop())
+                m_topPushed = false;
+
+            boolean runKickerTest = false;
+            if (joystick_1.getTrigger() && !m_triggerPulled)
+            {
+                runKickerTest = true;
+            }
+
+            if (runKickerTest)
+            {
+                kicker.test(m_kickerTestIndex);
+            }
+
+            if (!joystick_1.getTrigger())
+                m_triggerPulled = false;
         }
 
         //Runs periodically at 10Hz.

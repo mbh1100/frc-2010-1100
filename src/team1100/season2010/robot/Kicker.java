@@ -34,7 +34,18 @@ public class Kicker extends Thread
         m_latchPulledSensor = new DigitalInput(kLatchPulledSensorChannel);
 
         Compressor.instance().start();
+        m_running = false;
+    }
+
+    public void arm()
+    {
+        m_running = true;
         this.start();
+    }
+
+    public void disarm()
+    {
+        m_running = false;
     }
 
     /**
@@ -53,6 +64,7 @@ public class Kicker extends Thread
      */
     public void setKickMode(int hardOrSoft)
     {
+        if (!m_running) return;
 
         boolean tmpHardMode = (hardOrSoft == kickHard);
 
@@ -99,6 +111,7 @@ public class Kicker extends Thread
 
     private boolean m_hardMode = false;
     private boolean m_ready = false;
+    private boolean m_running = false;
 
     private DigitalOutput m_mainPushValve;
     private DigitalOutput m_mainPullValve;
@@ -131,7 +144,7 @@ public class Kicker extends Thread
      */
     public void run()
     {
-        while (true)
+        while (m_running)
         {
             // prepare to kick
             prepareToKick();
@@ -165,6 +178,111 @@ public class Kicker extends Thread
 
             // kick!
             openTheLatch();
+        }
+    }
+
+    /**
+     * open the latch and wait for the switch
+     */
+    public static final int kTestOpenLatch = 1;
+    /**
+     * pull with the main cylinder
+     */
+    public static final int kTestPullMain = 2;
+    /**
+     * push with the main cylinder
+     */
+    public static final int kTestPushMain = 3;
+    /**
+     * apply no pressure to the main cylider
+     */
+    public static final int kTestMainIdle = 4;
+    /**
+     * close the latch and wait for the closed switch
+     */
+    public static final int kTestCloseLatch = 5;
+    /**
+     * open the valve that pulls the latch cylinder (2B)
+     */
+    public static final int kTestPullLatch = 6;
+    /**
+     * open the valve the pushes the latch cylinder (2A)
+     */
+    public static final int kTestPushLatch = 7;
+    /**
+     * open the secondary valve for pulling the main cylinder (3B)
+     */
+    public static final int kTestPullCharge = 8;
+    /**
+     * open the secondary valve for venting the main cylinder (3A)
+     */
+    public static final int kTestPullVent = 9;
+    /**
+     * open the main pull valve (1B)
+     */
+    public static final int kTestMainPull = 10;
+    /**
+     * open the main push valve (1A)
+     */
+    public static final int kTestMainPush = 11;
+
+    /**
+l     * run the selected test
+     */
+    public void test(int step)
+    {
+        if (m_running) return;
+
+        switch (step)
+        {
+            case kTestOpenLatch:
+                System.out.println("Opening the latch");
+                openTheLatch();
+                break;
+            case kTestPullMain:
+                System.out.println("Pulling with main cylinder");
+                pullWithMainCylinder();
+                break;
+            case kTestPushMain:
+                System.out.println("Pushing with main cylinder");
+                pushWithMainCylinder();
+                break;
+            case kTestMainIdle:
+                System.out.println("Idling main cylinder");
+                idleMainCylinder();
+                break;
+            case kTestCloseLatch:
+                System.out.println("Closing the latch");
+                closeTheLatch();
+                break;
+            case kTestPullLatch:
+                System.out.println("open latch pull (2B)");
+                openValve(m_latchPullValve);
+                break;
+            case kTestPushLatch:
+                System.out.println("open latch push (2A)");
+                openValve(m_latchPushValve);
+                break;
+            case kTestPullCharge:
+                System.out.println("open main pull charge (3B)");
+                openValve(m_mainPullChargeValve);
+                break;
+            case kTestPullVent:
+                System.out.println("open main pull vent (3A)");
+                openValve(m_mainPullVentValve);
+                break;
+            case kTestMainPull:
+                System.out.println("open main pull (1B)");
+                openValve(m_mainPullValve);
+                break;
+            case kTestMainPush:
+                System.out.println("open main push (1A)");
+                openValve(m_mainPushValve);
+                break;
+            default:
+                System.out.println("Invalid Kicker Test index");
+                break;
+
         }
     }
 

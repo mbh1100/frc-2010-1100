@@ -6,7 +6,7 @@
 package team1100.season2010.robot;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DigitalOutput;
+import edu.wpi.first.wpilibj.Relay;
 import java.util.Timer;
 
 /**
@@ -16,8 +16,8 @@ import java.util.Timer;
  */
 public class Compressor {
 
-    final static int kSwitchChannel = 1;
-    final static int kCompressorMotorChannnel = 2;
+    final static int kSwitchChannel = 5;
+    final static int kCompressorMotorChannnel = 3;
     final static int kStartDelay = 10;
     final static int kCheckPeriod = 100;
     final static int kShutdownDelay = 1000;
@@ -30,6 +30,7 @@ public class Compressor {
     {
         if (theInstance == null)
         {
+            System.out.println("Creating Compressor");
             theInstance = new Compressor(kSwitchChannel, kCompressorMotorChannnel);
         }
         return theInstance;
@@ -55,7 +56,7 @@ public class Compressor {
     {
         m_timer.cancel();
         m_isRunning = false;
-        m_compressorOn.set(false);
+        m_compressorOn.set(Relay.Value.kOff);
         m_isStarted = false;
     }
 
@@ -78,14 +79,14 @@ public class Compressor {
     private Compressor(int pressureSwitchChannel, int spikeChannel)
     {
         m_pressureSwitch = new DigitalInput(pressureSwitchChannel);
-        m_compressorOn = new DigitalOutput(spikeChannel);
+        m_compressorOn = new Relay(spikeChannel);
 
         m_timer = new Timer();
     }
 
     private static Compressor theInstance;
     private DigitalInput m_pressureSwitch;
-    private DigitalOutput m_compressorOn;
+    private Relay m_compressorOn;
     private boolean m_isRunning = false;
     private boolean m_isStarted = false;
     private boolean m_limitDetected = false;
@@ -119,8 +120,9 @@ public class Compressor {
         if (m_pressureSwitch.get() && !m_isRunning)
         {
             // we're not running and we should - turn on
+            System.out.println("Turn on compressor");
             m_isRunning = true;
-            m_compressorOn.set(true);
+            m_compressorOn.set(Relay.Value.kOn);
             m_limitDetected = false;
         }
         else if (!m_pressureSwitch.get() && m_isRunning)
@@ -128,6 +130,7 @@ public class Compressor {
             // we are running and we should stop.
             if (!m_limitDetected)
             {
+                System.out.println("Limit reached");
                 // eventually.
                 m_limitDetected = true;
                 m_timer.schedule(task, kShutdownDelay);
@@ -136,10 +139,11 @@ public class Compressor {
             }
             else
             {
+                System.out.println("Turn off compressor");
                 // well, alright.
                 m_ready = true;
                 m_isRunning = false;
-                m_compressorOn.set(false);
+                m_compressorOn.set(Relay.Value.kOff);
             }
         }
 

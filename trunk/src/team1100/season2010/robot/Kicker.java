@@ -6,7 +6,7 @@
 package team1100.season2010.robot;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DigitalOutput;
+import edu.wpi.first.wpilibj.Solenoid;
 
 /**
  * Class representing the robot kicker subsystem
@@ -19,14 +19,16 @@ public class Kicker extends Thread
      */
     public Kicker()
     {
+        final int kSlot = 8;
+        
         m_hardMode = false;
         m_ready = false;
-        m_mainPushValve = new DigitalOutput(kMainPushChannel);
-        m_mainPullValve = new DigitalOutput(kMainPullChannel);
-        m_latchPushValve = new DigitalOutput(kLatchPushChannel);
-        m_latchPullValve = new DigitalOutput(kLatchPullChannel);
-        m_mainPullVentValve = new DigitalOutput(kMainPullVentChannel);
-        m_mainPullChargeValve = new DigitalOutput(kMainPullEnableChannel);
+        m_mainPushValve = new Solenoid(kSlot, kMainPushChannel);
+        m_mainPullValve = new Solenoid(kSlot, kMainPullChannel);
+        m_latchPushValve = new Solenoid(kSlot, kLatchPushChannel);
+        m_latchPullValve = new Solenoid(kSlot, kLatchPullChannel);
+        m_mainPullVentValve = new Solenoid(kSlot, kMainPullVentChannel);
+        m_mainPullChargeValve = new Solenoid(kSlot, kMainPullEnableChannel);
 
         m_mainPushedSensor = new DigitalInput(kMainPushedSensorChannel);
         m_mainPulledSensor = new DigitalInput(kMainPulledSensorChannel);
@@ -113,12 +115,12 @@ public class Kicker extends Thread
     private boolean m_ready = false;
     private boolean m_running = false;
 
-    private DigitalOutput m_mainPushValve;
-    private DigitalOutput m_mainPullValve;
-    private DigitalOutput m_latchPushValve;
-    private DigitalOutput m_latchPullValve;
-    private DigitalOutput m_mainPullVentValve;
-    private DigitalOutput m_mainPullChargeValve;
+    private Solenoid m_mainPushValve;
+    private Solenoid m_mainPullValve;
+    private Solenoid m_latchPushValve;
+    private Solenoid m_latchPullValve;
+    private Solenoid m_mainPullVentValve;
+    private Solenoid m_mainPullChargeValve;
 
     private DigitalInput m_mainPushedSensor;
     private DigitalInput m_mainPulledSensor;
@@ -364,10 +366,11 @@ l     * run the selected test
         return m_mainPulledSensor.get();
     }
 
-    private void openValve(DigitalOutput digout)
+    private void openValve(Solenoid digout)
     {
-        if (!digout.isPulsing())
-            digout.pulse(kValveOpenPulseWidthS);
+        digout.set(true);
+        Sleep(100);
+        digout.set(false);
     }
 
     /**

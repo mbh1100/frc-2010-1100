@@ -17,9 +17,6 @@ import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.Dashboard;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -91,12 +88,9 @@ public class Robot1100 extends IterativeRobot
 
     RobotDriveController RDC;
 
-    boolean m_triggerPulled = false;
-    boolean m_topPushed = false;
-    int m_kickerTestCycle = 0;
-    int m_kickerTestIndex = 0;
+    //Jaguar testMotor = new Jaguar(3);
 
-    AxisCamera cam;
+    //PIDController pid;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -104,6 +98,8 @@ public class Robot1100 extends IterativeRobot
      */
     public void robotInit()
     {
+
+
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
         this.setPeriod(0.01);
         System.out.print("ROBOT STARTUP");
@@ -137,9 +133,7 @@ public class Robot1100 extends IterativeRobot
         front_left_motor = new Jaguar(DIGPORT,5);
         //back_right_motor = new Jaguar(DIGPORT,3);
         //back_left_motor = new Jaguar(DIGPORT,4);
-        // chain_rotation_motor = new Jaguar(DIGPORT,3);
-        // crm code
-        //prev_pot = pot_1.getAverageValue();
+        chain_rotation_motor = new Jaguar(DIGPORT,3);
 
         prev_pot = pot_1.getAverageValue();*/
     }
@@ -208,7 +202,7 @@ public class Robot1100 extends IterativeRobot
 
         System.out.println("TeleOp Initialized.");
 
-        
+
     }
 
     /**
@@ -245,7 +239,7 @@ public class Robot1100 extends IterativeRobot
             DashboardPacker.updateDashboard();
 
             if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))
-                 RDC.setDriveType(0);
+                RDC.setDriveType(0);
             if(RDC.joystick_1.getRawButton(8)||RDC.joystick_1.getRawButton(9))
                 RDC.setDriveType(1);
             if(RDC.joystick_1.getRawButton(10)||RDC.joystick_1.getRawButton(11))
@@ -255,8 +249,7 @@ public class Robot1100 extends IterativeRobot
 
             /*System.out.println(pot_1.getAverageValue());
             chain_rotation_motor.set(joystick_2.getY());
-            */
-            
+
             //target speed determination
 
             avg_speed_val =  avg_speed_val*NUM_SPEED_ARRAY;
@@ -273,7 +266,7 @@ public class Robot1100 extends IterativeRobot
             //back_left_motor.set(avgval);
 
 
-            /* crm code
+
 
             //find averaged direction to go to
             avg_dir_val =  avg_dir_val*NUM_DIR_ARRAY;
@@ -319,109 +312,6 @@ public class Robot1100 extends IterativeRobot
             CRM_speed_array_index++;
 
             chain_rotation_motor.set(avg_CRM_speed_val);*/
-             *
-             * end crm code
-             */
-
-            // mbh code
-            steering.setDirection(joystick_1.getX());
-/*
-            if (joystick_1.getTop())
-            {
-                if (joystick_1.getZ() > 0 )
-                {
-                    System.out.println("entering hard kick mode");
-                    kicker.setKickMode(Kicker.kickHard);
-                }
-                else
-                {
-                    System.out.println("entering soft kick mode");
-                    kicker.setKickMode(Kicker.kickSoft);
-                }
-            }
-
-            if (kicker.isReady())
-            {
-                // light the 'armed' light.
-                DriverStation.getInstance().setDigitalOut(1, true);
-                // kick
-                if (joystick_1.getTrigger())
-                {
-                    kicker.kick();
-                    DriverStation.getInstance().setDigitalOut(1, false);
-                }
-            }
-*/
-            // kicker tests
-            if (joystick_1.getTop() && !m_topPushed)
-            {
-                m_topPushed = true;
-                ++m_kickerTestCycle;
-                switch (m_kickerTestCycle)
-                {
-                    case 1:
-                        System.out.println("Open the latch");
-                        m_kickerTestIndex = Kicker.kTestOpenLatch;
-                        break;
-                    case 2:
-                        System.out.println("Close the latch");
-                        m_kickerTestIndex = Kicker.kTestCloseLatch;
-                        break;
-                    case 3:
-                        System.out.println("Idle Main");
-                        m_kickerTestIndex = Kicker.kTestMainIdle;
-                        break;
-                    case 4:
-                        System.out.println("Pull Main");
-                        m_kickerTestIndex = Kicker.kTestMainPull;
-                        break;
-                    case 5:
-                        System.out.println("Push Main");
-                        m_kickerTestIndex = Kicker.kTestMainPush;
-                        break;
-                    case 6:
-                        System.out.println("open valve 3B");
-                        m_kickerTestIndex = Kicker.kTestPullCharge;
-                        break;
-                    case 7:
-                        System.out.println("open valve 3A");
-                        m_kickerTestIndex = Kicker.kTestPullVent;
-                        break;
-                    case 8:
-                        System.out.println("open valve 1B");
-                        m_kickerTestIndex = Kicker.kTestPullMain;
-                        break;
-                    case 9:
-                        System.out.println("open valve 1A");
-                        m_kickerTestIndex = Kicker.kTestPushMain;
-                        break;
-                    case 10:
-                        System.out.println("open valve 2B");
-                        m_kickerTestIndex = Kicker.kTestPullLatch;
-                        break;
-                    case 11:
-                        System.out.println("open valve 2A");
-                        m_kickerTestIndex = Kicker.kTestPushLatch;
-                        m_kickerTestCycle = 0;
-                        break;
-                }
-            }
-            if (!joystick_1.getTop())
-                m_topPushed = false;
-
-            boolean runKickerTest = false;
-            if (joystick_1.getTrigger() && !m_triggerPulled)
-            {
-                runKickerTest = true;
-            }
-
-            if (runKickerTest)
-            {
-                kicker.test(m_kickerTestIndex);
-            }
-
-            if (!joystick_1.getTrigger())
-                m_triggerPulled = false;
         }
 
         //Runs periodically at 10Hz.
@@ -433,17 +323,14 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
-            if (cam.freshImage())
-            {
-                System.out.println("Got a camera image!");
-            }
+
         }
 
 
 
     }
 
-   
+
 
     /**
      * This function is called when the robot enters disabled mode.
@@ -466,7 +353,7 @@ public class Robot1100 extends IterativeRobot
         {
 
         }
-        
+
         //Runs periodically at 50Hz.
         if (m_count % 2 == 0)
         {
@@ -483,7 +370,7 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 5 == 0)
         {
             DashboardPacker.updateDashboard();
-            //System.out.println("Packet Sent (D)");
+            System.out.println("Packet Sent (D)");
         }
 
         //Runs periodically at 10Hz.

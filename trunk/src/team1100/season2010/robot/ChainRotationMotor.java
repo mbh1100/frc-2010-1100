@@ -8,26 +8,46 @@ import edu.wpi.first.wpilibj.AnalogChannel;
 public class ChainRotationMotor
 {
       private AverageController CRM_speed_setpoint;
+      private double p_coeff;
+      private double minSpeed;
+      private double maxSpeed;
       private int pot_min = 374;
       private int pot_max = 579;
       private int pot_center = 483;
-      private int pot_deadband = 10;
-      private double CRM_speed;
-      private Jaguar chain_rotation_motor;
-      private AnalogChannel pot_1 = new AnalogChannel(7);
+      private int pot_deadband = 3;
+      private AdvJaguar chain_rotation_motor;
+      private AnalogChannel pot;
       private AverageController drive_direction_setpoint;
 
-      ChainRotationMotor(int CRM_channel, int avgNum)
+      ChainRotationMotor(int CRM_channel, int avgNum, int pot_channel)
       {
           CRM_speed_setpoint = new AverageController(avgNum);
-          CRM_speed = .2;
-          chain_rotation_motor = new Jaguar(CRM_channel);
+          chain_rotation_motor = new AdvJaguar(CRM_channel);
           drive_direction_setpoint = new AverageController(avgNum);
+          pot = new AnalogChannel(pot_channel);
+          p_coeff = 1;
+          minSpeed = .2;
+          maxSpeed = 1;
+      }
+      
+      public void setMinSpeed(double mS)
+      {
+          minSpeed = mS;
+      }
+      
+      public void setMaxSpeed(double mS)
+      {
+          maxSpeed = mS;
       }
 
-      public void setCRMSpeed(double CRM_speed)
+      public void setPCoeff(double pcoeff)
       {
-        this.CRM_speed = CRM_speed;
+          p_coeff = pcoeff;
+      }
+
+      public void setInvertedMotor(boolean tf)
+      {
+          chain_rotation_motor.setInvertedMotor(tf);
       }
 
       public void setPotMin(int potMin)
@@ -50,6 +70,11 @@ public class ChainRotationMotor
           pot_deadband = potDeadband;
       }
 
+      public double getPot()
+      {
+          return pot.getAverageValue();
+      }
+
       public void setWheelDirection(double position)
       {
         drive_direction_setpoint.addNewValue(position);
@@ -57,16 +82,18 @@ public class ChainRotationMotor
         double avg_dir_setpt = ((pot_max - pot_min) / 2) * (drive_direction_setpoint.getAverageValue() + 1) + pot_min;
         double newspeed;
 
-        if(avg_dir_setpt > pot_1.getAverageValue() + pot_deadband)
-            newspeed = -CRM_speed;
-        else if (avg_dir_setpt < pot_1.getAverageValue() - pot_deadband)
-            newspeed = CRM_speed;
+        if(avg_dir_setpt > pot.getAverageValue() + pot_deadband)
+            newspeed = p_coeff * (avg_dir_setpt - pot.getAverageValue())*(maxSpeed - minSpeed)/(pot_max - pot_min) + minSpeed;
+        else if (avg_dir_setpt < pot.getAverageValue() - pot_deadband)
+            newspeed = p_coeff * (avg_dir_setpt - pot.getAverageValue())*(maxSpeed - minSpeed)/(pot_max - pot_min) - minSpeed;
         else newspeed = 0;
 
-        if(pot_1.getAverageValue() >= pot_max + pot_deadband)
-            newspeed = -CRM_speed;
-        else if(pot_1.getAverageValue() <= pot_min - pot_deadband)
-            newspeed = CRM_speed;
+        System.out.println("\t\t\tSpeed: " + p_coeff * (avg_dir_setpt - pot.getAverageValue())*(maxSpeed - minSpeed)/(pot_max - pot_min) + minSpeed);
+
+        if(pot.getAverageValue() >= pot_max + pot_deadband)
+            newspeed = -minSpeed;
+        else if(pot.getAverageValue() <= pot_min - pot_deadband)
+            newspeed = minSpeed;
 
         CRM_speed_setpoint.addNewValue(newspeed);
         chain_rotation_motor.set(CRM_speed_setpoint.getAverageValue());
@@ -74,12 +101,12 @@ public class ChainRotationMotor
 
       public void setCenter()
       {
-          setWheelDirection(pot_center);
+          setWheelDirection(0);
       }
 
       public boolean atCenter()
       {
-          if(pot_1.getAverageValue() < pot_center + pot_deadband && pot_1.getAverageValue() > pot_center - pot_deadband)
+          if(pot.getAverageValue() < pot_center + pot_deadband && pot.getAverageValue() > pot_center - pot_deadband)
               return true;
           else return false;
       }

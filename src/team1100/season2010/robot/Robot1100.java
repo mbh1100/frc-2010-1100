@@ -33,56 +33,63 @@ public class Robot1100 extends IterativeRobot
     //Counts how many periodic cycles have passed.
     int m_count;
 
-    // crm code
-    // AnalogChannel pot_1 = new AnalogChannel(7);
+    //AnalogChannel pot_1 = new AnalogChannel(7);
+    final int POT_CHANNEL_VAL = 7;
 
-    Joystick joystick_1;
-    Joystick joystick_2;
+    //Joystick joystick_1;
+    //Joystick joystick_2;
+
+    final int joystick_1_channel = 1;
+    final int joystick_2_channel = 2;
+    final int jag_1_channel = 1;
+    final int jag_2_channel = 5;
+    final int jag_3_channel = 2;
+    final int jag_4_channel = 6;
+    final int CRM_channel = 3;
+
 
     //RobotDrive drive;
 
-    final int POT_RANGE = 10;
-    final int DIGPORT = 4;
-    int prev_pot;
-    final double JOYSTICK_DEADBAND = .5;
-    double prev_speed;
-    double setpt_speed;
-    final double SPEED_ADJUST = .1;
+   // final int POT_RANGE = 10;
+   // final int DIGPORT = 4;
+   // int prev_pot;
+   // final double JOYSTICK_DEADBAND = .5;
+   // double prev_speed;
+   // double setpt_speed;
+   // final double SPEED_ADJUST = .1;
 
-    final int MOTOR_DIRECTION_ADJUST = -1;
+   // final int MOTOR_DIRECTION_ADJUST = -1;
 
-    Jaguar front_right_motor;
-    Jaguar front_left_motor;
-    Jaguar back_right_motor;
-    Jaguar back_left_motor;
-    Jaguar chain_rotation_motor;
+    //Jaguar front_right_motor;
+    //Jaguar front_left_motor;
+    //Jaguar back_right_motor;
+    //Jaguar back_left_motor;
+    //Jaguar chain_rotation_motor;
 
-    double[] speed_array;
-    final int NUM_SPEED_ARRAY = 10;
-    int speed_array_index;
-    double avg_speed_val;
+   // double[] speed_array;
+   // final int NUM_SPEED_ARRAY = 10;
+   // int speed_array_index;
+   // double avg_speed_val;
 
-    double[] dir_array;
-    final int NUM_DIR_ARRAY = 10;
-    int dir_array_index;
-    double avg_dir_val;
+   // double[] dir_array;
+   // final int NUM_DIR_ARRAY = 10;
+   // int dir_array_index;
+   // double avg_dir_val;
 
-    final int POT_MIN = 374;
-    final int POT_MAX = 579;
-    final int POT_CENTER = 483;
-    final int POT_DEADBAND = 10;
+   // final int POT_MIN = 374;
+   // final int POT_MAX = 579;
+   // final int POT_CENTER = 483;
+   // final int POT_DEADBAND = 10;
 
     //CRM = chain_rotation_motor
-    double[] CRM_speed_array;
-    final int NUM_CRM_SPEED_ARRAY = 10;
-    int CRM_speed_array_index;
-    double avg_CRM_speed_val;
+   // double[] CRM_speed_array;
+   // final int NUM_CRM_SPEED_ARRAY = 10;
+  //  int CRM_speed_array_index;
+  //  double avg_CRM_speed_val;
 
-    final double CRM_SPEED = .2;
+   // final double CRM_SPEED = .2;
 
-    // mbh code
-    SteeringPID steering;
-    Kicker kicker;
+    RobotDriveController RDC;
 
     boolean m_triggerPulled = false;
     boolean m_topPushed = false;
@@ -108,7 +115,7 @@ public class Robot1100 extends IterativeRobot
         //pid = new PIDController(.1,.001,0, pot_1, testMotor);
         //pid.setInputRange(0, 1024);
 
-        speed_array = new double[NUM_SPEED_ARRAY];
+        /*speed_array = new double[NUM_SPEED_ARRAY];
         speed_array_index = 0;
         avg_speed_val = 0;
 
@@ -118,10 +125,12 @@ public class Robot1100 extends IterativeRobot
 
         dir_array = new double[NUM_DIR_ARRAY];
         dir_array_index = 0;
-        avg_dir_val = 0;
+        avg_dir_val = 0;*/
 
+        RDC = new RobotDriveController(0,joystick_1_channel,joystick_2_channel,
+                jag_1_channel,jag_2_channel,jag_3_channel,jag_4_channel,CRM_channel,4);
 
-        joystick_1 = new Joystick(1);
+        /*joystick_1 = new Joystick(1);
         joystick_2 = new Joystick(2);
 
         front_right_motor = new Jaguar(DIGPORT,1);
@@ -132,18 +141,7 @@ public class Robot1100 extends IterativeRobot
         // crm code
         //prev_pot = pot_1.getAverageValue();
 
-        cam = AxisCamera.getInstance();
-
-        /* mbh code */
-        final int steeringPot = 7;
-        final int steeringJag = 3;
-        steering = new SteeringPID(steeringPot, steeringJag, true);
-        steering.setCenterPct(50.6);
-        steering.setLinearPct(3);
-
-        kicker = new Kicker();
-        // kicker.arm();
-         /* end mbh code*/
+        prev_pot = pot_1.getAverageValue();*/
     }
 
     /**
@@ -246,17 +244,25 @@ public class Robot1100 extends IterativeRobot
             Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
 
-            /* crm code
-            System.out.println(pot_1.getAverageValue());
+            if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))
+                 RDC.setDriveType(0);
+            if(RDC.joystick_1.getRawButton(8)||RDC.joystick_1.getRawButton(9))
+                RDC.setDriveType(1);
+            if(RDC.joystick_1.getRawButton(10)||RDC.joystick_1.getRawButton(11))
+                RDC.setDriveType(2);
+
+            RDC.drive();
+
+            /*System.out.println(pot_1.getAverageValue());
             chain_rotation_motor.set(joystick_2.getY());
             */
             
             //target speed determination
 
-            avg_speed_val = avg_speed_val*NUM_SPEED_ARRAY;
+            avg_speed_val =  avg_speed_val*NUM_SPEED_ARRAY;
             avg_speed_val -= speed_array[speed_array_index%NUM_SPEED_ARRAY];
-            avg_speed_val+=joystick_2.getY();
-            avg_speed_val = avg_speed_val/NUM_SPEED_ARRAY;
+            avg_speed_val += joystick_2.getY();
+            avg_speed_val =  avg_speed_val/NUM_SPEED_ARRAY;
             speed_array[speed_array_index%NUM_SPEED_ARRAY]=joystick_2.getY();
             speed_array_index++;
 
@@ -270,10 +276,10 @@ public class Robot1100 extends IterativeRobot
             /* crm code
 
             //find averaged direction to go to
-            avg_dir_val = avg_dir_val*NUM_DIR_ARRAY;
+            avg_dir_val =  avg_dir_val*NUM_DIR_ARRAY;
             avg_dir_val -= dir_array[dir_array_index%NUM_DIR_ARRAY];
-            avg_dir_val+=joystick_1.getX();
-            avg_dir_val = avg_dir_val/NUM_DIR_ARRAY;
+            avg_dir_val += joystick_1.getX();
+            avg_dir_val =  avg_dir_val/NUM_DIR_ARRAY;
             dir_array[dir_array_index%NUM_DIR_ARRAY]=joystick_1.getX();
             dir_array_index++;
 
@@ -312,7 +318,7 @@ public class Robot1100 extends IterativeRobot
             CRM_speed_array[CRM_speed_array_index%NUM_CRM_SPEED_ARRAY] = newspeed;
             CRM_speed_array_index++;
 
-            chain_rotation_motor.set(avg_CRM_speed_val);
+            chain_rotation_motor.set(avg_CRM_speed_val);*/
              *
              * end crm code
              */

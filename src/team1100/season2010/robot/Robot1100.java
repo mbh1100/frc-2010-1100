@@ -30,17 +30,29 @@ public class Robot1100 extends IterativeRobot
     //Counts how many periodic cycles have passed.
     int m_count;
 
-    final int POT_CHANNEL_VAL = 7;
+    final int POT_front_CHANNEL_VAL = 1;
+    final int POT_back_CHANNEL_VAL = 2;
 
     final int joystick_1_channel = 1;
     final int joystick_2_channel = 2;
-    final int jag_1_channel = 1;
-    final int jag_2_channel = 5;
-    final int jag_3_channel = 2;
-    final int jag_4_channel = 6;
-    final int CRM_channel = 3;
+    final int jag_FR_channel = 1;
+    final int jag_FL_channel = 5;
+    final int jag_BR_channel = 2;
+    final int jag_BL_channel = 6;
+    final int CRM_back_channel = 4;
+    final int CRM_front_channel = 3;
 
     RobotDriveController RDC;
+
+
+    /*AnalogChannel p1 = new AnalogChannel(1);
+    AnalogChannel p2 = new AnalogChannel(2);
+    Joystick j1 = new Joystick(1);
+    Joystick j2 = new Joystick(2);
+    Jaguar m1 = new Jaguar(3);
+    Jaguar m2 = new Jaguar(4);*/
+
+    //Compressor compressor;
 
 
     /**
@@ -54,7 +66,12 @@ public class Robot1100 extends IterativeRobot
         System.out.print("ROBOT STARTUP");
 
         RDC = new RobotDriveController(0,joystick_1_channel,joystick_2_channel,
-                jag_1_channel,jag_2_channel,jag_3_channel,jag_4_channel,CRM_channel,4);
+                jag_FR_channel,jag_FL_channel,jag_BR_channel,jag_BL_channel,CRM_front_channel,CRM_back_channel,
+                POT_front_CHANNEL_VAL, POT_back_CHANNEL_VAL,4);
+        RDC.setInvertedMotor(true,true,true,true);
+
+        //compressor = new Compressor(4,5,4,1);
+        //compressor.start();
     }
 
     /**
@@ -165,6 +182,26 @@ public class Robot1100 extends IterativeRobot
                 RDC.setDriveType(2);
 
             RDC.drive();
+            
+            System.out.println(RDC.getPotVals());
+            
+           /* System.out.println("CRM front: " + p1.getAverageValue());
+            System.out.println("\tCRM back: " + p2.getAverageValue());
+
+            if(j1.getX()>.4)
+              m1.set(.2);
+            else if(j1.getX()<-.4)
+              m1.set(-.2);
+            else m1.set(0);
+            if(j2.getX()>.4)
+                m2.set(.2);
+            else if(j2.getX()<-.4)
+                m2.set(-.2);
+            else m2.set(0);*/
+
+
+
+            //System.out.println("Pressure Switch: " + compressor.getPressureSwitchValue());
         }
 
         //Runs periodically at 10Hz.
@@ -223,7 +260,8 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 5 == 0)
         {
             DashboardPacker.updateDashboard();
-            System.out.println("Packet Sent (D)");
+            //System.out.println("Packet Sent (D)");
+            System.out.println(RDC.getPotVals());
         }
 
         //Runs periodically at 10Hz.

@@ -6,6 +6,7 @@
 package team1100.season2010.robot;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Solenoid;
 
 /**
@@ -35,7 +36,6 @@ public class Kicker extends Thread
         m_latchPushedSensor = new  DigitalInput(kLatchPushedSensorChannel);
         m_latchPulledSensor = new DigitalInput(kLatchPulledSensorChannel);
 
-        Compressor.instance().start();
         m_running = false;
     }
 
@@ -101,7 +101,7 @@ public class Kicker extends Thread
      */
     public void kick()
     {
-        if (m_ready)
+        if (m_running && m_ready)
             notify();
     }
 
@@ -146,10 +146,36 @@ public class Kicker extends Thread
      */
     public void run()
     {
+        Compressor.instance().start();
+        while (!Compressor.instance().isPressureReady())
+        {
+            Sleep(1000);
+        }
+
         while (m_running)
         {
-            // prepare to kick
+            // prepare to kick.
             prepareToKick();
+
+            if (!isMainExtended())
+            {
+                // the latch may have failed. Don't wait in this state,
+                // or there will be a penalty (rule <G30> part a)
+                openTheLatch();
+                pushWithMainCylinder();
+
+                // wait to avoid exceeding the frame perimeter within 
+                // the allowed period.
+                Sleep(2000);
+                continue;
+            }
+
+            // The expectation is that it will normally take
+            // more than two seconds to extend the main cylinder, so that
+            // software measures are not required to prevent kicking more 
+            // often than once per two seconds. If the cycle time is faster,
+            // add artificial delay here.
+            // Sleep(n);
 
             // wait while the compressor gets ready. Before we say
             // we're ready, be sure there's enough pressure to withdraw
@@ -159,7 +185,7 @@ public class Kicker extends Thread
                 Sleep(1000);
                 continue;
             }
-
+            
             // set ready flag
             m_ready = true;
 
@@ -180,111 +206,12 @@ public class Kicker extends Thread
 
             // kick!
             openTheLatch();
-        }
-    }
 
-    /**
-     * open the latch and wait for the switch
-     */
-    public static final int kTestOpenLatch = 1;
-    /**
-     * pull with the main cylinder
-     */
-    public static final int kTestPullMain = 2;
-    /**
-     * push with the main cylinder
-     */
-    public static final int kTestPushMain = 3;
-    /**
-     * apply no pressure to the main cylider
-     */
-    public static final int kTestMainIdle = 4;
-    /**
-     * close the latch and wait for the closed switch
-     */
-    public static final int kTestCloseLatch = 5;
-    /**
-     * open the valve that pulls the latch cylinder (2B)
-     */
-    public static final int kTestPullLatch = 6;
-    /**
-     * open the valve the pushes the latch cylinder (2A)
-     */
-    public static final int kTestPushLatch = 7;
-    /**
-     * open the secondary valve for pulling the main cylinder (3B)
-     */
-    public static final int kTestPullCharge = 8;
-    /**
-     * open the secondary valve for venting the main cylinder (3A)
-     */
-    public static final int kTestPullVent = 9;
-    /**
-     * open the main pull valve (1B)
-     */
-    public static final int kTestMainPull = 10;
-    /**
-     * open the main push valve (1A)
-     */
-    public static final int kTestMainPush = 11;
-
-    /**
-l     * run the selected test
-     */
-    public void test(int step)
-    {
-        if (m_running) return;
-
-        switch (step)
-        {
-            case kTestOpenLatch:
-                System.out.println("Opening the latch");
-                openTheLatch();
-                break;
-            case kTestPullMain:
-                System.out.println("Pulling with main cylinder");
-                pullWithMainCylinder();
-                break;
-            case kTestPushMain:
-                System.out.println("Pushing with main cylinder");
-                pushWithMainCylinder();
-                break;
-            case kTestMainIdle:
-                System.out.println("Idling main cylinder");
-                idleMainCylinder();
-                break;
-            case kTestCloseLatch:
-                System.out.println("Closing the latch");
-                closeTheLatch();
-                break;
-            case kTestPullLatch:
-                System.out.println("open latch pull (2B)");
-                openValve(m_latchPullValve);
-                break;
-            case kTestPushLatch:
-                System.out.println("open latch push (2A)");
-                openValve(m_latchPushValve);
-                break;
-            case kTestPullCharge:
-                System.out.println("open main pull charge (3B)");
-                openValve(m_mainPullChargeValve);
-                break;
-            case kTestPullVent:
-                System.out.println("open main pull vent (3A)");
-                openValve(m_mainPullVentValve);
-                break;
-            case kTestMainPull:
-                System.out.println("open main pull (1B)");
-                openValve(m_mainPullValve);
-                break;
-            case kTestMainPush:
-                System.out.println("open main push (1A)");
-                openValve(m_mainPushValve);
-                break;
-            default:
-                System.out.println("Invalid Kicker Test index");
-                break;
-
+            // wait for the cylinder to fully withdraw, but give up soon
+            // in case of sensor failure or cylinder jam. We need to start
+            // pushing soon to avoid the penalty for being extended more
+            // than 2 seconds.
+            waitForMainPulled(500);
         }
     }
 
@@ -295,7 +222,9 @@ l     * run the selected test
     {
         openTheLatch();
         pushWithMainCylinder();
+        waitForMainPushed();
         closeTheLatch();
+        waitForLatchClosed();
         if (m_hardMode)
             pullWithMainCylinder();
         else
@@ -306,7 +235,10 @@ l     * run the selected test
     {
         if (!isLatchOpen())
             openValve(m_latchPushValve);
+    }
 
+    private void waitForLatchOpen()
+    {
         while (!isLatchOpen())
         {
             Sleep(50);
@@ -317,7 +249,10 @@ l     * run the selected test
     {
         if (!isLatchClosed())
             openValve(m_latchPullValve);
+    }
 
+    private void waitForLatchClosed()
+    {
         while (!isLatchClosed())
         {
             Sleep(50);
@@ -327,6 +262,10 @@ l     * run the selected test
     private void pushWithMainCylinder()
     {
         openValve(m_mainPushValve);
+    }
+
+    private void waitForMainPushed()
+    {
         while (!isMainExtended())
         {
             Sleep(100);
@@ -337,7 +276,15 @@ l     * run the selected test
     {
         openValve(m_mainPullValve);
         openValve(m_mainPullChargeValve);
-        // don't wait for it to get there; we're likely latched
+    }
+
+    private void waitForMainPulled(int maxWaitMs)
+    {
+        while (!isMainWithdrawn() && maxWaitMs > 0)
+        {
+            maxWaitMs -= 100;
+            Sleep(100);
+        }
     }
 
     private void idleMainCylinder()
@@ -388,4 +335,196 @@ l     * run the selected test
         {
         }
     }
+
+    /**
+     * test index values
+     */
+    private static final int kTestOpenLatch = 1;
+    private static final int kTestPullMain = 2;
+    private static final int kTestPushMain = 3;
+    private static final int kTestMainIdle = 4;
+    private static final int kTestCloseLatch = 5;
+    private static final int kTestPullLatch = 6;
+    private static final int kTestPushLatch = 7;
+    private static final int kTestPullCharge = 8;
+    private static final int kTestPullVent = 9;
+    private static final int kTestMainPull = 10;
+    private static final int kTestMainPush = 11;
+    private static final int kTestMainPulled = 12;
+    private static final int kTestMainPushed = 13;
+    private static final int kTestLatchPulled = 14;
+    private static final int kTestLatchPushed = 15;
+    private static final int kTestPrepareToKick = 16;
+
+    public void test(Joystick joystick)
+    {
+        if (m_running) return;
+        // when we first detect the top button pushed, bump the index
+        if (joystick.getTop() && !m_topPushed)
+        {
+            m_topPushed = true;
+            ++m_kickerTestCycle;
+            switch (m_kickerTestCycle)
+            {
+                case 1:
+                    System.out.println("Open the latch");
+                    m_kickerTest = kTestOpenLatch;
+                    break;
+                case 2:
+                    System.out.println("Close the latch");
+                    m_kickerTest = kTestCloseLatch;
+                    break;
+                case 3:
+                    System.out.println("Idle Main");
+                    m_kickerTest = kTestMainIdle;
+                     break;
+                case 4:
+                    System.out.println("Pull Main");
+                    m_kickerTest = kTestMainPull;
+                    break;
+                case 5:
+                    System.out.println("Push Main");
+                    m_kickerTest = kTestMainPush;
+                    break;
+                case 6:
+                    System.out.println("open valve 1A");
+                    m_kickerTest = kTestPushMain;
+                    break;
+                case 7:
+                    System.out.println("open valve 1B");
+                    m_kickerTest = kTestPullMain;
+                    break;
+                case 8:
+                    System.out.println("open valve 2A");
+                    m_kickerTest = kTestPushLatch;
+                    break;
+                case 9:
+                    System.out.println("open valve 2B");
+                    m_kickerTest = kTestPullLatch;
+                    break;
+                case 10:
+                    System.out.println("open valve 3A");
+                    m_kickerTest = kTestPullVent;
+                    break;
+                case 11:
+                    System.out.println("open valve 3B");
+                    m_kickerTest = kTestPullCharge;
+                    break;
+                case 12:
+                    System.out.println("test latch pulled...");
+                    m_kickerTest = kTestLatchPulled;
+                    break;
+                case 13:
+                    System.out.println("test latch pushed...");
+                    m_kickerTest = kTestLatchPushed;
+                    break;
+                case 14:
+                    System.out.println("test main pulled...");
+                    m_kickerTest = kTestMainPulled;
+                    break;
+                case 15:
+                    System.out.println("test main pushed...");
+                    m_kickerTest = kTestMainPushed;
+                    m_kickerTestCycle = 0;
+                    break;
+            }
+        }
+
+        if (!joystick.getTop())
+            m_topPushed = false;
+
+        // when we first detect the trigger pulled, run the test
+        if (joystick.getTrigger() && !m_triggerPulled)
+        {
+            doTest(m_kickerTest);
+        }
+
+        if (!joystick.getTrigger())
+            m_triggerPulled = false;
+    }
+
+    /**
+     * run the selected test
+     */
+    private boolean doTest(int index)
+    {
+        boolean rval = false;
+        switch (index)
+        {
+            case kTestOpenLatch:
+                System.out.println("Opening the latch");
+                openTheLatch();
+                break;
+            case kTestPullMain:
+                System.out.println("Pulling with main cylinder");
+                pullWithMainCylinder();
+                break;
+            case kTestPushMain:
+                System.out.println("Pushing with main cylinder");
+                pushWithMainCylinder();
+                break;
+            case kTestMainIdle:
+                System.out.println("Idling main cylinder");
+                idleMainCylinder();
+                break;
+            case kTestCloseLatch:
+                System.out.println("Closing the latch");
+                closeTheLatch();
+                break;
+            case kTestPullLatch:
+                System.out.println("opening latch pull (2B)");
+                openValve(m_latchPullValve);
+                break;
+            case kTestPushLatch:
+                System.out.println("opening latch push (2A)");
+                openValve(m_latchPushValve);
+                break;
+            case kTestPullCharge:
+                System.out.println("opening main pull charge (3B)");
+                openValve(m_mainPullChargeValve);
+                break;
+            case kTestPullVent:
+                System.out.println("opening main pull vent (3A)");
+                openValve(m_mainPullVentValve);
+                break;
+            case kTestMainPull:
+                System.out.println("opening main pull (1B)");
+                openValve(m_mainPullValve);
+                break;
+            case kTestMainPush:
+                System.out.println("opening main push (1A)");
+                openValve(m_mainPushValve);
+                break;
+            case kTestMainPulled:
+                rval = isMainWithdrawn();
+                System.out.println("main pulled sensor = " + rval);
+                break;
+            case kTestMainPushed:
+                rval = isMainExtended();
+                System.out.println("main pushed sensor = " + rval);
+                break;
+            case kTestLatchPulled:
+                rval = isLatchClosed();
+                System.out.println("latch pulled sensor = " + rval);
+                break;
+            case kTestLatchPushed:
+                rval = isLatchOpen();
+                System.out.println("latch pushed sensor = " + rval);
+                break;
+            case kTestPrepareToKick:
+                System.out.println("Preparing to kick");
+                prepareToKick();
+                break;
+            default:
+                System.out.println("Invalid Kicker Test index");
+                break;
+        }
+        return rval;
+    }
+
+    boolean m_topPushed = false;
+    boolean m_triggerPulled = false;
+    int m_kickerTestCycle = 0;
+    int m_kickerTest = 0;
 }
+

@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.Solenoid;
-import edu.wpi.first.wpilibj.Compressor;
+//import edu.wpi.first.wpilibj.Compressor;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -43,7 +43,7 @@ public class Robot1100 extends IterativeRobot
     final int CRM_front_channel = 3;
 
     RobotDriveController RDC;
-
+    Kicker kicker;
 
     /*AnalogChannel p1 = new AnalogChannel(1);
     AnalogChannel p2 = new AnalogChannel(2);
@@ -71,7 +71,7 @@ public class Robot1100 extends IterativeRobot
         RDC.setInvertedMotor(true,true,true,true);
 
         //compressor = new Compressor(4,5,4,1);
-        //compressor.start();
+        kicker = new Kicker();
     }
 
     /**
@@ -79,6 +79,8 @@ public class Robot1100 extends IterativeRobot
      */
     public void autonomousInit()
     {
+        Compressor.instance().start();
+        // kicker.arm();
         m_count = 0;
         System.out.println("Autonomous Init");
     }
@@ -112,7 +114,7 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 5 == 0)
         {
             DashboardPacker.updateDashboard();
-            System.out.println("Packet Sent (Auto)");
+            // System.out.println("Packet Sent (Auto)");
 
         }
 
@@ -138,7 +140,8 @@ public class Robot1100 extends IterativeRobot
 
         System.out.println("TeleOp Initialized.");
 
-
+        Compressor.instance().start();
+        // kicker.arm();
     }
 
     /**
@@ -202,6 +205,35 @@ public class Robot1100 extends IterativeRobot
 
 
             //System.out.println("Pressure Switch: " + compressor.getPressureSwitchValue());
+
+            /*
+            if (joystick_1.getTop())
+            {
+                if (joystick_1.getZ() > 0 )
+                {
+                    System.out.println("entering hard kick mode");
+                    kicker.setKickMode(Kicker.kickHard);
+                }
+                else
+                {
+                    System.out.println("entering soft kick mode");
+                    kicker.setKickMode(Kicker.kickSoft);
+                }
+            }
+
+            if (kicker.isReady())
+            {
+                // light the 'armed' light.
+                DriverStation.getInstance().setDigitalOut(1, true);
+                // kick
+                if (joystick_1.getTrigger())
+                {
+                    kicker.kick();
+                    DriverStation.getInstance().setDigitalOut(1, false);
+                }
+            }
+*/
+
         }
 
         //Runs periodically at 10Hz.
@@ -213,11 +245,8 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
-
+            kicker.test(RDC.joystick_1);
         }
-
-
-
     }
 
 
@@ -228,7 +257,9 @@ public class Robot1100 extends IterativeRobot
     public void disabledInit()
     {
         m_count = 0;
-       // System.out.println("Disabled Init 1100 version");
+        // System.out.println("Disabled Init 1100 version");
+        Compressor.instance().stop();
+        kicker.disarm();
     }
 
     /**
@@ -261,7 +292,7 @@ public class Robot1100 extends IterativeRobot
         {
             DashboardPacker.updateDashboard();
             //System.out.println("Packet Sent (D)");
-            System.out.println(RDC.getPotVals());
+            //System.out.println(RDC.getPotVals());
         }
 
         //Runs periodically at 10Hz.

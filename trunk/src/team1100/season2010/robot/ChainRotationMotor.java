@@ -26,7 +26,7 @@ public class ChainRotationMotor
           drive_direction_setpoint = new AverageController(avgNum);
           pot = new AnalogChannel(pot_channel);
           p_coeff = 1;
-          minSpeed = .2;
+          minSpeed = .5;
           maxSpeed = 1;
       }
       
@@ -88,7 +88,7 @@ public class ChainRotationMotor
             newspeed = p_coeff * (avg_dir_setpt - pot.getAverageValue())*(maxSpeed - minSpeed)/(pot_max - pot_min) - minSpeed;
         else newspeed = 0;
 
-        System.out.println("\t\t\tSpeed: " + p_coeff * (avg_dir_setpt - pot.getAverageValue())*(maxSpeed - minSpeed)/(pot_max - pot_min) + minSpeed);
+        //System.out.println("\t\t\tSpeed: " + p_coeff * (avg_dir_setpt - pot.getAverageValue())*(maxSpeed - minSpeed)/(pot_max - pot_min) + minSpeed);
 
         if(pot.getAverageValue() >= pot_max + pot_deadband)
             newspeed = -minSpeed;
@@ -109,5 +109,10 @@ public class ChainRotationMotor
           if(pot.getAverageValue() < pot_center + pot_deadband && pot.getAverageValue() > pot_center - pot_deadband)
               return true;
           else return false;
+      }
+
+      public void setDirect(double speed)
+      {
+          chain_rotation_motor.set(speed);
       }
 }

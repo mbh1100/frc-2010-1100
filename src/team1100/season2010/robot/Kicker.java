@@ -5,529 +5,267 @@
 
 package team1100.season2010.robot;
 
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Joystick;
+/**
+ *
+ * @author team1100
+ */
+
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DigitalInput;
 
-/**
- * Class representing the robot kicker subsystem
- * @author mark
- */
-public class Kicker extends Thread
+//deal with time between commands by putting in lower Hz zone.
+public class Kicker
 {
-    /**
-     * constructor
-     */
-    public Kicker()
+  private boolean hardKick;
+  private boolean primed;
+  private Compressor compressor;
+  private Solenoid valve_1_A;
+  private Solenoid valve_1_B;
+  private Solenoid valve_2_A;
+  private Solenoid valve_2_B;
+  private Solenoid valve_3_B;
+  private Solenoid valve_3_A;
+  private DigitalInput latch_mount;
+  private DigitalInput latch_piston;
+  private DigitalInput kick_mount;
+  private DigitalInput kick_piston;
+
+  private int prime_state;
+  private int kick_state;
+  private int test_state;
+
+
+  public Kicker()
+  {
+    hardKick = true;
+    primed = false;
+    prime_state = 0;
+    kick_state = 0;
+    test_state = 0;
+
+    valve_1_A = new Solenoid(8,1);
+    valve_2_A = new Solenoid(8,3);
+    valve_3_A = new Solenoid(8,5);
+    valve_1_B = new Solenoid(8,2);
+    valve_2_B = new Solenoid(8,4);
+    valve_3_B = new Solenoid(8,6);
+
+    latch_mount = new DigitalInput(4,4);
+    latch_piston = new DigitalInput(4,3);
+    kick_mount = new DigitalInput(4,2);
+    kick_piston = new DigitalInput(4,1);
+
+    compressor = new Compressor(4,5,4,1);
+    depressurize();
+    compressor.start();
+    primeKicker();
+  }
+
+  public void setHardSoft(boolean hard_or_soft)
+  {
+    //hard = true, soft = false
+    hardKick = hard_or_soft;
+
+    if(primed)
+      if(hardKick)
+      {
+        valve_1_B.set(true);
+        valve_3_B.set(true);
+      }
+      else
+      {
+        valve_1_B.set(false);
+        valve_3_B.set(false);
+      }
+  }
+
+  public boolean getHardSoft()
+  {
+    return hardKick;
+  }
+
+  public void primeKicker()
+  {
+    if(!primed)
     {
-        final int kSlot = 8;
-        
-        m_hardMode = false;
-        m_ready = false;
-        m_mainExtendValve = new Solenoid(kSlot, kMainExtendChannel);
-        m_mainRetractValve = new Solenoid(kSlot, kMainRetractChannel);
-        m_latchExtendValve = new Solenoid(kSlot, kLatchExtendChannel);
-        m_latchRetractValve = new Solenoid(kSlot, kLatchRetractChannel);
-        m_mainRetractVentValve = new Solenoid(kSlot, kMainRetractVentChannel);
-        m_mainRetractChargeValve = new Solenoid(kSlot, kMainRetractEnableChannel);
+      //DEPRESSURIZE FIRST
+      if(prime_state == 0)
+      {
+        depressurize();
+      }
 
-        m_mainExtendedSensor = new DigitalInput(kMainExtendedSensorChannel);
-        m_mainRetractedSensor = new DigitalInput(kMainRetractedSensorChannel);
-        m_latchExtendedSensor = new  DigitalInput(kLatchExtendedSensorChannel);
-        m_latchRetractedSensor = new DigitalInput(kLatchRetractedSensorChannel);
+      //OPEN LATCH
+      else if(prime_state == 1)
+      {
+        valve_2_B.set(false);
+        prime_state++;
+      }
+      else if(prime_state == 2)
+      {
+        valve_2_A.set(true);
+        prime_state++;
+      }
+      else if(prime_state == 3)
+      {
+        if(!latch_piston.get())
+          prime_state++;
+      }
 
-        m_running = false;
-    }
+      //ARM KICKER
+      else if(prime_state == 4)
+      {
+        valve_1_B.set(false);
+        valve_3_B.set(false);
+        prime_state++;
+      }
+      else if(prime_state == 5)
+      {
+        valve_1_A.set(true);
+        prime_state++;
+      }
+      else if(prime_state == 6)
+      {
+        if(!kick_piston.get())
+          prime_state++;
+      }
 
-    public void arm()
-    {
-        m_running = true;
-        this.start();
-    }
+      //LOCK LATCH
+      else if(prime_state == 7)
+      {
+        valve_2_A.set(false);
+        prime_state++;
+      }
+      else if(prime_state == 8)
+      {
+        valve_2_B.set(true);
+      }
 
-    public void disarm()
-    {
-        m_running = false;
-    }
-
-    /**
-     * constant for hard kick mode
-     */
-    public final static int kickHard = 0;
-    /**
-     * constant for soft kick mode
-     */
-    public final static int kickSoft = 1;
-
-    /**
-     * adjust the kicker for short kicks or long kicks.
-     * @param hardOrSoft use constant kickHard for long kicks, or kickSoft
-     * for short kicks.
-     */
-    public void setKickMode(int hardOrSoft)
-    {
-        if (!m_running) return;
-
-        boolean tmpHardMode = (hardOrSoft == kickHard);
-
-        // if nothing changes, we're done.
-        if (m_hardMode == tmpHardMode) return;
-
-        m_hardMode = tmpHardMode;
-        // if we're not charged and ready to kick, the hard/soft
-        // valve won't actuate, because there's no pressure from the 
-        // main retract valve. That's OK, we'll properly set the valve, based
-        // on m_hardMode, after the kicker is set.
-        // There's a race between changing the valves here while
-        // the cycling engine is setting them according to the previous mode.
-        // We could open both A and B valves at once, leaving the valve
-        // in an indeterminate state. The subsequent kick could have the
-        // wrong force. It's unlikely that we'll hit this problem; ignore it.
-        // If the kick mode is changed while the kicker is ready,
-        // there is no risk of a race.
-        if (m_hardMode)
+      //SET KICKER
+      else if(prime_state == 9)
+      {
+        valve_1_A.set(false);
+        prime_state++;
+      }
+      else if(prime_state == 10)
+      {
+        if(hardKick)
         {
-            openValve(m_mainRetractChargeValve);
+          valve_1_B.set(true);
+          valve_3_B.set(true);
         }
-        else
-        {
-            openValve(m_mainRetractVentValve);
-        }
+        primed = true;
+      }
     }
 
-    /**
-     * start the kick cycle, operating the kicker. This won't do anything
-     * if the kicker is not ready.
-     */
-    public void kick()
+
+  }
+
+  public void kick()
+  {
+    if(primed == true)
     {
-        if (m_running && m_ready)
-            notify();
+      if(kick_state == 0)
+      {
+        /*if(kickHard)
+          {
+            valve_1_B.set(true);
+            valve_3_B.set(true);
+          }*/
+
+        valve_2_B.set(false);
+        kick_state++;
+      }
+
+      else if(kick_state == 1)
+      {
+        valve_2_A.set(true);
+        kick_state++;
+      }
+
+      else if(kick_state == 2)
+      {
+        primed = false;
+        prime_state = 0;
+        kick_state = 0;
+      }
     }
+    else System.out.println("ERR: Kick without prime.");
+  }
 
-    /**
-     * test if the kicker is ready to kick.
-     * @return true if the kicker is ready, false otherwise.
-     */
-    public boolean isReady() { return m_ready; }
+  private void depressurize()
+  {
+    valve_1_A.set(false);
+    valve_1_B.set(false);
+    valve_2_A.set(false);
+    valve_2_B.set(false);
+    valve_3_A.set(false);
+    valve_3_B.set(false);
+  }
 
-    private boolean m_hardMode = false;
-    private boolean m_ready = false;
-    private boolean m_running = false;
+  public void disarm()
+  {
+    compressor.stop();
+    depressurize();
+  }
 
-    private Solenoid m_mainExtendValve;
-    private Solenoid m_mainRetractValve;
-    private Solenoid m_latchExtendValve;
-    private Solenoid m_latchRetractValve;
-    private Solenoid m_mainRetractVentValve;
-    private Solenoid m_mainRetractChargeValve;
-
-    private DigitalInput m_mainExtendedSensor;
-    private DigitalInput m_mainRetractedSensor;
-    private DigitalInput m_latchExtendedSensor;
-    private DigitalInput m_latchRetractedSensor;
-
-    private static final int kMainExtendChannel = 1;
-    private static final int kMainRetractChannel = 2;
-    private static final int kMainRetractVentChannel = 5;
-    private static final int kMainRetractEnableChannel = 6;
-    private static final int kLatchExtendChannel = 3;
-    private static final int kLatchRetractChannel = 4;
-    private static final int kMainExtendedSensorChannel = 1;
-    private static final int kMainRetractedSensorChannel = 2;
-    private static final int kLatchExtendedSensorChannel = 3;
-    private static final int kLatchRetractedSensorChannel = 4;
-
-//    private static final double kValveOpenPulseWidthS = 0.5;
-
-    Compressor compressor;
-
-    /*
-     * override Thread.run(). This is called when the thread
-     * is started.
-     */
-    public void run()
+  public void testSolenoidSignal()
+  {
+    if(test_state == 0)
+    {//depressurize
+      depressurize();
+      test_state++;
+    }
+    else if(test_state == 1)
+    {//extend kicker rod
+      valve_3_B.set(false);
+      valve_1_B.set(false);
+      test_state++;
+    }
+    else if(test_state == 2)
     {
-        /*
-        while (!compressor.pressurized())
-        {
-            Sleep(1000);
-        }
-*/
-        while (m_running)
-        {
-            // prepare to kick.
-            prepareToKick();
-
-            if (!isMainExtended())
-            {
-                // the latch may have failed. Don't wait in this state,
-                // or there will be a penalty (rule <G30> part a)
-                openTheLatch();
-                extendWithMainCylinder();
-
-                // wait to avoid exceeding the frame perimeter within 
-                // the allowed period.
-                Sleep(2000);
-                continue;
-            }
-
-            // The expectation is that it will normally take
-            // more than two seconds to extend the main cylinder, so that
-            // software measures are not required to prevent kicking more 
-            // often than once per two seconds. If the cycle time is faster,
-            // add artificial delay here.
-            // Sleep(n);
-
-            // wait while the compressor gets ready. Before we say
-            // we're ready, be sure there's enough pressure to withdraw
-            // the foot after the kick.
-/*            if (!Compressor.instance().isPressureReady())
-            {
-                Sleep(1000);
-                continue;
-            }
-  */
-            // set ready flag
-            m_ready = true;
-
-            // wait for kick signal
-            try
-            {
-                wait();
-            }
-            catch (InterruptedException ex)
-            {
-                System.out.println("*** Interrupted while waiting for kick ***");
-                // don't kick
-                m_ready = false;
-                continue;
-            }
-
-            m_ready = false;
-
-            // kick!
-            openTheLatch();
-
-            // wait for the cylinder to fully withdraw, but give up soon
-            // in case of sensor failure or cylinder jam. We need to start
-            // extending soon to avoid the penalty for being extended more
-            // than 2 seconds.
-            waitForMainRetracted(500);
-        }
+      valve_1_A.set(true);
+      System.out.println("Kicker piston rod extended.");
+      test_state++;
     }
-
-    /**
-     * cycle the latch and charge the kicker according to the mode.
-     */
-    private void prepareToKick()
+    else if(test_state == 3)
+    {//retract kicker rod
+      valve_1_A.set(false);
+      test_state++;
+    }
+    else if(test_state == 4)
     {
-        openTheLatch();
-        extendWithMainCylinder();
-        waitForMainExtended();
-        closeTheLatch();
-        waitForLatchClosed();
-        if (m_hardMode)
-            retractWithMainCylinder();
-        else
-            idleMainCylinder();
+      valve_3_B.set(true);
+      valve_1_B.set(true);
+      System.out.println("Kicker piston rod retracted.");
+      test_state++;
     }
-
-    private void openTheLatch()
+    else if(test_state == 5)
+    {//extend latch rod
+      valve_2_B.set(false);
+      test_state++;
+    }
+    else if(test_state == 6)
     {
-        if (!isLatchOpen())
-            openValve(m_latchExtendValve);
+      valve_2_A.set(true);
+      System.out.println("Latch piston rod extended.");
+      test_state++;
     }
-
-    private void waitForLatchOpen()
+    else if(test_state == 7)
+    {//retract latch rod
+      valve_2_A.set(false);
+      test_state++;
+    }
+    else if(test_state == 8)
     {
-        while (!isLatchOpen())
-        {
-            Sleep(50);
-        }
+      valve_2_B.set(true);
+      System.out.println("Latch piston rod retracted.");
+      test_state = 0;
     }
+  }
 
-    private void closeTheLatch()
-    {
-        if (!isLatchClosed())
-            openValve(m_latchRetractValve);
-    }
+  public void testSensors()
+  {
 
-    private void waitForLatchClosed()
-    {
-        while (!isLatchClosed())
-        {
-            Sleep(50);
-        }
-    }
-
-    private void extendWithMainCylinder()
-    {
-        openValve(m_mainExtendValve);
-    }
-
-    private void waitForMainExtended()
-    {
-        while (!isMainExtended())
-        {
-            Sleep(100);
-        }
-    }
-
-    private void retractWithMainCylinder()
-    {
-        openValve(m_mainRetractValve);
-        openValve(m_mainRetractChargeValve);
-    }
-
-    private void waitForMainRetracted(int maxWaitMs)
-    {
-        while (!isMainWithdrawn() && maxWaitMs > 0)
-        {
-            maxWaitMs -= 100;
-            Sleep(100);
-        }
-    }
-
-    private void idleMainCylinder()
-    {
-        openValve(m_mainRetractValve);
-        openValve(m_mainRetractVentValve);
-    }
-
-    private boolean isLatchOpen()
-    {
-        return !m_latchExtendedSensor.get();
-    }
-
-    private boolean isLatchClosed()
-    {
-        return !m_latchRetractedSensor.get();
-    }
-
-    private boolean isMainExtended()
-    {
-        return !m_mainExtendedSensor.get();
-    }
-
-    private boolean isMainWithdrawn()
-    {
-        return !m_mainRetractedSensor.get();
-    }
-
-    private void openValve(Solenoid digout)
-    {
-        digout.set(true);
-        Sleep(100);
-        digout.set(false);
-    }
-
-    /**
-     * sleep that doesn't throw. Just returns if the
-     * sleep is interrupted.
-     * @param ms milleseconds to delay
-     */
-    private void Sleep(long ms)
-    {
-        try
-        {
-            sleep(ms);
-        }
-        catch (InterruptedException ex)
-        {
-        }
-    }
-
-    /**
-     * test index values
-     */
-    private static final int kTestOpenLatch = 1;
-    private static final int kTestRetractMain = 2;
-    private static final int kTestExtendMain = 3;
-    private static final int kTestMainIdle = 4;
-    private static final int kTestCloseLatch = 5;
-    private static final int kTestRetractLatch = 6;
-    private static final int kTestExtendLatch = 7;
-    private static final int kTestRetractCharge = 8;
-    private static final int kTestRetractVent = 9;
-    private static final int kTestMainRetract = 10;
-    private static final int kTestMainExtend = 11;
-    private static final int kTestMainRetracted = 12;
-    private static final int kTestMainExtended = 13;
-    private static final int kTestLatchRetracted = 14;
-    private static final int kTestLatchExtended = 15;
-    private static final int kTestPrepareToKick = 16;
-
-    public void test(Joystick joystick)
-    {
-        if (m_running) return;
-        // when we first detect the top button extended, bump the index
-        if (joystick.getTop() && !m_topExtended)
-        {
-            m_topExtended = true;
-            ++m_kickerTestCycle;
-            switch (m_kickerTestCycle)
-            {
-                case 1:
-                    System.out.println("Open the latch");
-                    m_kickerTest = kTestOpenLatch;
-                    break;
-                case 2:
-                    System.out.println("Close the latch");
-                    m_kickerTest = kTestCloseLatch;
-                    break;
-                case 3:
-                    System.out.println("Idle Main");
-                    m_kickerTest = kTestMainIdle;
-                     break;
-                case 4:
-                    System.out.println("Retract Main");
-                    m_kickerTest = kTestMainRetract;
-                    break;
-                case 5:
-                    System.out.println("Extend Main");
-                    m_kickerTest = kTestMainExtend;
-                    break;
-                case 6:
-                    System.out.println("open valve 1A");
-                    m_kickerTest = kTestExtendMain;
-                    break;
-                case 7:
-                    System.out.println("open valve 1B");
-                    m_kickerTest = kTestRetractMain;
-                    break;
-                case 8:
-                    System.out.println("open valve 2A");
-                    m_kickerTest = kTestExtendLatch;
-                    break;
-                case 9:
-                    System.out.println("open valve 2B");
-                    m_kickerTest = kTestRetractLatch;
-                    break;
-                case 10:
-                    System.out.println("open valve 3A");
-                    m_kickerTest = kTestRetractVent;
-                    break;
-                case 11:
-                    System.out.println("open valve 3B");
-                    m_kickerTest = kTestRetractCharge;
-                    break;
-                case 12:
-                    System.out.println("test latch retracted...");
-                    m_kickerTest = kTestLatchRetracted;
-                    break;
-                case 13:
-                    System.out.println("test latch extended...");
-                    m_kickerTest = kTestLatchExtended;
-                    break;
-                case 14:
-                    System.out.println("test main retracted...");
-                    m_kickerTest = kTestMainRetracted;
-                    break;
-                case 15:
-                    System.out.println("test main extended...");
-                    m_kickerTest = kTestMainExtended;
-                    m_kickerTestCycle = 0;
-                    break;
-            }
-        }
-
-        if (!joystick.getTop())
-            m_topExtended = false;
-
-        // when we first detect the trigger retracted, run the test
-        if (joystick.getTrigger() && !m_triggerRetracted)
-        {
-            doTest(m_kickerTest);
-        }
-
-        if (!joystick.getTrigger())
-            m_triggerRetracted = false;
-    }
-
-    /**
-     * run the selected test
-     */
-    private boolean doTest(int index)
-    {
-        boolean rval = false;
-        switch (index)
-        {
-            case kTestOpenLatch:
-                System.out.println("Opening the latch");
-                openTheLatch();
-                break;
-            case kTestRetractMain:
-                System.out.println("Retracting with main cylinder");
-                retractWithMainCylinder();
-                break;
-            case kTestExtendMain:
-                System.out.println("Extending with main cylinder");
-                extendWithMainCylinder();
-                break;
-            case kTestMainIdle:
-                System.out.println("Idling main cylinder");
-                idleMainCylinder();
-                break;
-            case kTestCloseLatch:
-                System.out.println("Closing the latch");
-                closeTheLatch();
-                break;
-            case kTestRetractLatch:
-                System.out.println("opening latch retract (2B)");
-                openValve(m_latchRetractValve);
-                break;
-            case kTestExtendLatch:
-                System.out.println("opening latch extend (2A)");
-                openValve(m_latchExtendValve);
-                break;
-            case kTestRetractCharge:
-                System.out.println("opening main retract charge (3B)");
-                openValve(m_mainRetractChargeValve);
-                break;
-            case kTestRetractVent:
-                System.out.println("opening main retract vent (3A)");
-                openValve(m_mainRetractVentValve);
-                break;
-            case kTestMainRetract:
-                System.out.println("opening main retract (1B)");
-                openValve(m_mainRetractValve);
-                break;
-            case kTestMainExtend:
-                System.out.println("opening main extend (1A)");
-                openValve(m_mainExtendValve);
-                break;
-            case kTestMainRetracted:
-                rval = isMainWithdrawn();
-                System.out.println("main retracted sensor = " + rval);
-                break;
-            case kTestMainExtended:
-                rval = isMainExtended();
-                System.out.println("main extended sensor = " + rval);
-                break;
-            case kTestLatchRetracted:
-                rval = isLatchClosed();
-                System.out.println("latch retracted sensor = " + rval);
-                break;
-            case kTestLatchExtended:
-                rval = isLatchOpen();
-                System.out.println("latch extended sensor = " + rval);
-                break;
-            case kTestPrepareToKick:
-                System.out.println("Preparing to kick");
-                prepareToKick();
-                break;
-            default:
-                System.out.println("Invalid Kicker Test index");
-                break;
-        }
-        return rval;
-    }
-
-    boolean m_topExtended = false;
-    boolean m_triggerRetracted = false;
-    int m_kickerTestCycle = 0;
-    int m_kickerTest = 0;
+  }
 }
-

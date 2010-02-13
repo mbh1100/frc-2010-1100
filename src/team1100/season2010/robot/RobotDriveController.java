@@ -10,6 +10,11 @@ public class RobotDriveController
 {
     private int drive_type;
     private int joystick_type;
+    private int prev_drive_type;
+
+    private int joystick_adjust_X;
+    private int joystick_adjust_Y;
+
     public Joystick joystick_1;
     public Joystick joystick_2;
     private AdvJaguar front_right_motor;
@@ -43,6 +48,10 @@ public class RobotDriveController
     {
         drive_type = type;
         joystick_type = 0;
+        prev_drive_type = 1;
+
+        joystick_adjust_Y = 1;
+        joystick_adjust_X = 1;
 
         joystick_1 = new Joystick(j1_channel);
         joystick_2 = new Joystick(j2_channel);
@@ -61,6 +70,8 @@ public class RobotDriveController
         CRM_back = new ChainRotationMotor(CRM_back_channel, avgNum, pot_back_channel);
         CRM_front = new ChainRotationMotor(CRM_front_channel, avgNum, pot_front_channel);
 
+        CRM_back.setInvertedMotor(false);
+        CRM_front.setInvertedMotor(true);
         translationInit();
     }
 
@@ -85,17 +96,39 @@ public class RobotDriveController
     public void change90Mode()
     {
         if(drive_type == 22)
-            drive_type = 2;
-        else drive_type = 22;
+            drive_type = prev_drive_type;
+        else 
+        {
+            if(drive_type != 33)
+              prev_drive_type = drive_type;
+            drive_type = 22;
+        }
         translationInit();
     }
 
-    public void change45Mode()
+    /*public void change45Mode()
     {
         if(drive_type == 33)
-            drive_type = 3;
-        else drive_type = 33;
+            drive_type = prev_drive_type;
+        else
+        {
+            if(drive_type != 22)
+                prev_drive_type = drive_type;
+            drive_type = 33;
+        }
         rotationInit();
+    }*/
+
+    public void setInvertJoystickX()
+    {
+        joystick_adjust_X = joystick_adjust_X * -1;
+        System.out.println("X inverted");
+    }
+
+    public void setInvertJoystickY()
+    {
+        joystick_adjust_Y = joystick_adjust_Y * -1;
+        System.out.println("Y inverted");
     }
 
     public String getPotVals()
@@ -119,8 +152,8 @@ public class RobotDriveController
               diagnostic();
           else if(drive_type == 22)
               translate90_TwoJoystick();
-          else if(drive_type == 33)
-              rotate45_TwoJoystick();
+          //else if(drive_type == 33)
+              //rotate45_TwoJoystick();
         }
         else  //1 joystick
         {
@@ -134,8 +167,8 @@ public class RobotDriveController
               diagnostic();
           else if(drive_type == 22)
               translate90_OneJoystick();
-          else if(drive_type == 33)
-              rotate45_OneJoystick();
+          //else if(drive_type == 33)
+              //rotate45_OneJoystick();
         }
     }
 
@@ -180,14 +213,14 @@ public class RobotDriveController
         if(!CRM_front.atCenter())
            CRM_front.setCenter();
 
-        drive_motor_speed_setpoint.addNewValue(-1* joystick_2.getY());
+        drive_motor_speed_setpoint.addNewValue(-1* joystick_adjust_Y * joystick_2.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setWheelDirection(joystick_1.getX());
+        CRM_back.setWheelDirection(joystick_adjust_X * joystick_1.getX());
     }
 
     private void carDriveOneJoystick()
@@ -195,14 +228,14 @@ public class RobotDriveController
         if(!CRM_front.atCenter())
            CRM_front.setCenter();
 
-        drive_motor_speed_setpoint.addNewValue(-1* joystick_1.getY());
+        drive_motor_speed_setpoint.addNewValue(-1* joystick_adjust_Y *joystick_1.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setWheelDirection(joystick_1.getX());
+        CRM_back.setWheelDirection(joystick_adjust_X * joystick_1.getX());
     }
 
     private void swerveDrive()
@@ -212,15 +245,15 @@ public class RobotDriveController
        // CRM_back.setPCoeff((joystick_1.getZ()+1)/2);
         //CRM_front.setPCoeff((joystick_2.getZ()+1)/2);
 
-        drive_motor_speed_setpoint.addNewValue(joystick_2.getY());
+        drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_2.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setWheelDirection(joystick_1.getX());
-        CRM_front.setWheelDirection(-joystick_1.getX());
+        CRM_back.setWheelDirection(joystick_adjust_X * joystick_1.getX());
+        CRM_front.setWheelDirection(-1 * joystick_adjust_X * joystick_1.getX());
     }
 
     private void swerveDriveOneJoystick()
@@ -230,41 +263,41 @@ public class RobotDriveController
        // CRM_back.setPCoeff((joystick_1.getZ()+1)/2);
         //CRM_front.setPCoeff((joystick_2.getZ()+1)/2);
 
-        drive_motor_speed_setpoint.addNewValue(joystick_1.getY());
+        drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_1.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setWheelDirection(joystick_1.getX());
-        CRM_front.setWheelDirection(-joystick_1.getX());
+        CRM_back.setWheelDirection(joystick_adjust_X * joystick_1.getX());
+        CRM_front.setWheelDirection(-1 * joystick_adjust_X * joystick_1.getX());
     }
 
     private void translate90_TwoJoystick()
     {
-        drive_motor_speed_setpoint.addNewValue(joystick_2.getY());
+        drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_2.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setWheelDirection(1);
-        CRM_front.setWheelDirection(-1);
+        CRM_back.setWheelDirection(joystick_adjust_X);
+        CRM_front.setWheelDirection(-1 * joystick_adjust_X);
     }
 
     private void translate90_OneJoystick()
     {
-        drive_motor_speed_setpoint.addNewValue(joystick_1.getY());
+        drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_1.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setWheelDirection(1);
-        CRM_front.setWheelDirection(-1);
+        CRM_back.setWheelDirection(joystick_adjust_X);
+        CRM_front.setWheelDirection(-1 * joystick_adjust_X);
     }
 
     private void swerveRotationDrive()
@@ -274,15 +307,15 @@ public class RobotDriveController
         //System.out.println("\t\t\t\tPCOEFF: "+(joystick_1.getZ()+1)/2);
         //System.out.println("\t\t\t\tPCOEFF: " + (joystick_2.getZ()+1)/2);
 
-        drive_motor_speed_setpoint.addNewValue(joystick_2.getY());
+        drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_2.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setWheelDirection(-joystick_1.getX());
-        CRM_front.setWheelDirection(-joystick_1.getX());
+        CRM_back.setWheelDirection(-1 * joystick_adjust_X * joystick_1.getX());
+        CRM_front.setWheelDirection(-1 * joystick_adjust_X * joystick_1.getX());
     }
 
     private void swerveRotationDriveOneJoystick()
@@ -292,20 +325,20 @@ public class RobotDriveController
         //System.out.println("\t\t\t\tPCOEFF: "+(joystick_1.getZ()+1)/2);
         //System.out.println("\t\t\t\tPCOEFF: " + (joystick_2.getZ()+1)/2);
 
-        drive_motor_speed_setpoint.addNewValue(joystick_1.getY());
+        drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_1.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setWheelDirection(-joystick_1.getX());
-        CRM_front.setWheelDirection(-joystick_1.getX());
+        CRM_back.setWheelDirection(-1 * joystick_adjust_X * joystick_1.getX());
+        CRM_front.setWheelDirection(-1 * joystick_adjust_X * joystick_1.getX());
     }
 
-    private void rotate45_TwoJoystick()
+    /*private void rotate45_TwoJoystick()
     {
-        drive_motor_speed_setpoint.addNewValue(joystick_2.getY());
+        drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_2.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
@@ -314,19 +347,19 @@ public class RobotDriveController
 
         if(joystick_1.getX()<0)
         {
-          CRM_back.setWheelDirection(-1);
-          CRM_front.setWheelDirection(-1);
+          CRM_back.setWheelDirection(joystick_adjust_X);
+          CRM_front.setWheelDirection(joystick_adjust_X);
         }
         if(joystick_1.getX()>0)
         {
-            CRM_back.setWheelDirection(1);
-            CRM_front.setWheelDirection(1);
+            CRM_back.setWheelDirection(-joystick_adjust_X);
+            CRM_front.setWheelDirection(-joystick_adjust_X);
         }
     }
 
     private void rotate45_OneJoystick()
     {
-        drive_motor_speed_setpoint.addNewValue(joystick_1.getY());
+        drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_1.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
@@ -335,15 +368,15 @@ public class RobotDriveController
 
         if(joystick_1.getX()<0)
         {
-          CRM_back.setWheelDirection(-1);
-          CRM_front.setWheelDirection(-1);
+          CRM_back.setWheelDirection(joystick_adjust_X);
+          CRM_front.setWheelDirection(joystick_adjust_X);
         }
         if(joystick_1.getX()>0)
         {
-            CRM_back.setWheelDirection(1);
-            CRM_front.setWheelDirection(1);
+            CRM_back.setWheelDirection(-joystick_adjust_X);
+            CRM_front.setWheelDirection(-joystick_adjust_X);
         }
-    }
+    }*/
 
     public void setInvertedMotor(boolean m1, boolean m2, boolean m3, boolean m4)
     {
@@ -353,20 +386,17 @@ public class RobotDriveController
         back_left_motor.setInvertedMotor(m4);
     }
 
-
     private void translationInit()
     {
         CRM_back.setPotMax(548);
         CRM_back.setPotCenter(481);
         CRM_back.setPotMin(401);
-        CRM_back.setInvertedMotor(false);
         CRM_back.setMinSpeed(.4);
         CRM_back.setPCoeff(.7);
 
         CRM_front.setPotCenter(501);
         CRM_front.setPotMax(568);
         CRM_front.setPotMin(432);
-        CRM_front.setInvertedMotor(true);
         CRM_front.setMinSpeed(.4);
         CRM_front.setPCoeff(.76);
     }
@@ -376,15 +406,13 @@ public class RobotDriveController
         CRM_back.setPotMax(514);
         CRM_back.setPotCenter(481);
         CRM_back.setPotMin(441);
-        CRM_back.setInvertedMotor(false);
         CRM_back.setMinSpeed(.4);
         CRM_back.setPCoeff(.7);
 
         CRM_front.setPotCenter(501);
         CRM_front.setPotMax(534);
         CRM_front.setPotMin(467);
-        CRM_front.setInvertedMotor(true);
-        CRM_front.setMinSpeed(.4);
+        CRM_front.setMinSpeed(.4); // should this be -.4 to -.7?? -Jared
         CRM_front.setPCoeff(.76);
     }
 

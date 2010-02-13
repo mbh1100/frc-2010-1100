@@ -44,7 +44,7 @@ public class Robot1100 extends IterativeRobot
 
     RobotDriveController RDC;
 
-    Kicker kicker;
+   // Kicker kicker;
 
 
 
@@ -65,7 +65,7 @@ public class Robot1100 extends IterativeRobot
 
 
 
-        kicker = new Kicker();
+      //  kicker = new Kicker();
     }
 
     /**
@@ -119,7 +119,7 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
-           kicker.primeKicker();
+          // kicker.primeKicker();
         }
     }
 
@@ -132,7 +132,7 @@ public class Robot1100 extends IterativeRobot
 
         System.out.println("TeleOp Initialized.");
 
-        kicker.turnOnKicker();
+       // kicker.turnOnKicker();
     }
 
     /**
@@ -168,25 +168,37 @@ public class Robot1100 extends IterativeRobot
             Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
 
-            /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))
-                RDC.setDriveType(0);
-            if(RDC.joystick_1.getRawButton(8)||RDC.joystick_1.getRawButton(9))
+            /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Tank
+                RDC.setDriveType(0);*/
+            if(RDC.joystick_1.getRawButton(8)||RDC.joystick_1.getRawButton(9))//Car
                 RDC.setDriveType(1);
-            if(RDC.joystick_1.getRawButton(10)||RDC.joystick_1.getRawButton(11))
+            if(RDC.joystick_1.getRawButton(10)||RDC.joystick_1.getRawButton(11))//Swerve
                 RDC.setDriveType(2);
-            if(RDC.joystick_2.getTrigger() && RDC.joystick_2.getRawButton(2))
-                RDC.setDriveType(3);*/
+            if(RDC.joystick_2.getTrigger() && RDC.joystick_2.getRawButton(2)) //Diagnostic
+                RDC.setDriveType(4);
+            if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Swerve Rotation
+                RDC.setDriveType(3);
 
-            //RDC.drive();
+            if(RDC.joystick_2.getRawButton(6))
+                RDC.setJoystickType(0);
+            if(RDC.joystick_2.getRawButton(7))
+                RDC.setJoystickType(1);
 
-            if(RDC.joystick_1.getTrigger())
+            if(RDC.joystick_1.getRawButton(4))
+                RDC.change90Mode();
+            if(RDC.joystick_1.getRawButton(5))
+                RDC.change45Mode();
+
+            RDC.drive();
+
+            /*if(RDC.joystick_1.getTrigger())
                 kicker.kick(m_count);
 
             if(RDC.joystick_1.getRawButton(4))
                 kicker.setHardSoft(true);
             
             if(RDC.joystick_1.getRawButton(5))
-                kicker.setHardSoft(false);
+                kicker.setHardSoft(false);*/
 
 
 
@@ -213,7 +225,7 @@ public class Robot1100 extends IterativeRobot
 
         if(m_count % 15 == 0)
         {
-            kicker.primeKicker();
+            //kicker.primeKicker();
 
 
 
@@ -235,7 +247,7 @@ public class Robot1100 extends IterativeRobot
     public void disabledInit()
     {
         m_count = 0;
-        kicker.disarm();
+        //kicker.disarm();
        // System.out.println("Disabled Init 1100 version");
     }
 

@@ -44,6 +44,8 @@ public class Robot1100 extends IterativeRobot
 
     RobotDriveController RDC;
 
+    int prev_count;
+
    // Kicker kicker;
 
 
@@ -75,6 +77,7 @@ public class Robot1100 extends IterativeRobot
     {
         m_count = 0;
         System.out.println("Autonomous Init");
+       // kicker.turnOnKicker();
     }
 
     /**
@@ -121,6 +124,9 @@ public class Robot1100 extends IterativeRobot
         {
           // kicker.primeKicker();
         }
+
+       // if(m_count == 300)
+         //   kicker.kick();
     }
 
     /**
@@ -168,6 +174,17 @@ public class Robot1100 extends IterativeRobot
             Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
 
+            //camera test:
+           /* AxisCamera camera = AxisCamera.getInstance();
+            try{
+                camera.getImage().free();
+            }
+            catch(AxisCameraException e){
+            }
+            catch(NIVisionException e){
+            }*/
+
+
             /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Tank
                 RDC.setDriveType(0);*/
             if(RDC.joystick_1.getRawButton(8)||RDC.joystick_1.getRawButton(9))//Car
@@ -179,22 +196,42 @@ public class Robot1100 extends IterativeRobot
             if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Swerve Rotation
                 RDC.setDriveType(3);
 
-            if(RDC.joystick_2.getRawButton(6))
-                RDC.setJoystickType(0);
-            if(RDC.joystick_2.getRawButton(7))
-                RDC.setJoystickType(1);
+            if(RDC.joystick_2.getRawButton(6) && m_count - prev_count > 30)
+            {
+                RDC.setJoystickType(0);//one joystick
+                prev_count = m_count;
+            }
+            if(RDC.joystick_2.getRawButton(7) && m_count - prev_count > 30)
+            {
+                RDC.setJoystickType(1);//two joystick
+                prev_count = m_count;
+            }
 
-            if(RDC.joystick_1.getRawButton(4))
+            if(RDC.joystick_1.getRawButton(4) && m_count - prev_count > 30)
+            {
                 RDC.change90Mode();
-            if(RDC.joystick_1.getRawButton(5))
+                prev_count = m_count;
+            }
+            /*if(RDC.joystick_1.getRawButton(5) && m_count - prev_count > 30)
+            {
                 RDC.change45Mode();
+                prev_count = m_count;
+            }*/
+
+            if(RDC.joystick_1.getRawButton(3) && m_count - prev_count > 30)
+            {
+                RDC.setInvertJoystickX();
+                prev_count = m_count;
+            }
+            if(RDC.joystick_1.getRawButton(2) && m_count - prev_count > 30)
+            {
+                RDC.setInvertJoystickY();
+                prev_count = m_count;
+            }
 
             RDC.drive();
 
-            /*if(RDC.joystick_1.getTrigger())
-                kicker.kick(m_count);
-
-            if(RDC.joystick_1.getRawButton(4))
+            /*if(RDC.joystick_1.getRawButton(4))
                 kicker.setHardSoft(true);
             
             if(RDC.joystick_1.getRawButton(5))
@@ -227,6 +264,8 @@ public class Robot1100 extends IterativeRobot
         {
             //kicker.primeKicker();
 
+            /*if(RDC.joystick_1.getTrigger())
+                kicker.kick(m_count);*/
 
 
            /* if(RDC.joystick_1.getTrigger())

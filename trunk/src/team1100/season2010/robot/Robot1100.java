@@ -44,7 +44,8 @@ public class Robot1100 extends IterativeRobot
 
     RobotDriveController RDC;
 
-    //Compressor compressor;
+    Kicker kicker;
+
 
 
     /**
@@ -62,8 +63,9 @@ public class Robot1100 extends IterativeRobot
                 POT_front_CHANNEL_VAL, POT_back_CHANNEL_VAL,4);
         RDC.setInvertedMotor(true,true,true,true);
 
-        //compressor = new Compressor(4,5,4,1);
-        //compressor.start();
+
+
+        kicker = new Kicker();
     }
 
     /**
@@ -117,7 +119,7 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
-
+           kicker.primeKicker();
         }
     }
 
@@ -130,7 +132,7 @@ public class Robot1100 extends IterativeRobot
 
         System.out.println("TeleOp Initialized.");
 
-
+        kicker.turnOnKicker();
     }
 
     /**
@@ -166,16 +168,28 @@ public class Robot1100 extends IterativeRobot
             Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
 
-            if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))
+            /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))
                 RDC.setDriveType(0);
             if(RDC.joystick_1.getRawButton(8)||RDC.joystick_1.getRawButton(9))
                 RDC.setDriveType(1);
             if(RDC.joystick_1.getRawButton(10)||RDC.joystick_1.getRawButton(11))
                 RDC.setDriveType(2);
             if(RDC.joystick_2.getTrigger() && RDC.joystick_2.getRawButton(2))
-                RDC.setDriveType(3);
+                RDC.setDriveType(3);*/
 
-            RDC.drive();
+            //RDC.drive();
+
+            if(RDC.joystick_1.getTrigger())
+                kicker.kick(m_count);
+
+            if(RDC.joystick_1.getRawButton(4))
+                kicker.setHardSoft(true);
+            
+            if(RDC.joystick_1.getRawButton(5))
+                kicker.setHardSoft(false);
+
+
+
             
             //System.out.println(RDC.getPotVals());
 
@@ -194,6 +208,19 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 20 == 0)
         {
 
+
+        }
+
+        if(m_count % 15 == 0)
+        {
+            kicker.primeKicker();
+
+
+
+           /* if(RDC.joystick_1.getTrigger())
+            {
+                kicker.primeKicker();
+            }*/
         }
 
 
@@ -208,6 +235,7 @@ public class Robot1100 extends IterativeRobot
     public void disabledInit()
     {
         m_count = 0;
+        kicker.disarm();
        // System.out.println("Disabled Init 1100 version");
     }
 
@@ -241,7 +269,7 @@ public class Robot1100 extends IterativeRobot
         {
             DashboardPacker.updateDashboard();
             //System.out.println("Packet Sent (D)");
-            System.out.println(RDC.getPotVals());
+            //System.out.println(RDC.getPotVals());
         }
 
         //Runs periodically at 10Hz.

@@ -42,7 +42,7 @@ public class Kicker
     hardKick = true;
     prime_state = 0;
     test_state = 0;
-    prev_count = 0;
+    prev_count = -200;
 
     valve_1_A = new Solenoid(8,1);
     valve_2_A = new Solenoid(8,3);
@@ -69,6 +69,7 @@ public class Kicker
   public void turnOnKicker()
   {
       compressor.start();
+      prev_count = -200;
   }
 
   public void setHardSoft(boolean hard_or_soft)
@@ -165,8 +166,10 @@ public class Kicker
         primed = true;
         prime_state = 0;
       }
-    }
 
+    }
+    if(!limit_switch.get())
+          primed = false;
 
   }
 
@@ -174,20 +177,30 @@ public class Kicker
   {
     if(primed == true && curr_count - prev_count >= 200)
     {
+        System.out.println("kick!");
+        
         valve_2_B.set(false);
         valve_2_A.set(true);
-        
-        prime_state = 3;
+
+        // going to state 1 repeats the valve setting, but
+        // adds delay so we don't test the limit switch too soon.
+        prime_state = 1;
  
         primed = false;
         prev_count = curr_count;
+        
+        //valve_1_B.set(false);
+        //valve_1_A.set(true);
 
-        valve_1_B.set(false);
-        valve_1_A.set(true);
-        valve_3_B.set(false);
-        valve_3_A.set(true);
+
+        //valve_3_B.set(false);
+        //valve_3_A.set(true);
     }
-    else System.out.println("ERR: Kick without prime.");
+    else
+    {
+        System.out.println("ERR: Kick without prime or before 2 seconds.");
+        System.out.println("m_count = " + curr_count + "; prevCount = " + prev_count + "; primed = " + primed);
+    }
   }
 
   public void disarm()

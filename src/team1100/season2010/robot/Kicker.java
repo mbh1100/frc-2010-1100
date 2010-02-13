@@ -109,22 +109,22 @@ public class Kicker
         System.out.println("open latch");
         prime_state++;
       }
-      else if(prime_state == 1)
+      /*else if(prime_state == 1)
       {
        // if(!latch_piston.get())
           System.out.println("latch open");
           prime_state++;
-      }
+      }*/
 
       //ARM KICKER
-      else if(prime_state == 2)
+      else if(prime_state == 1)
       {
         valve_1_B.set(false);
         valve_1_A.set(true);
         System.out.println("arm kicker");
         prime_state++;
       }
-      else if(prime_state == 3)
+      else if(prime_state == 2)
       {
       //  if(!kick_piston.get())
           if(limit_switch.get())
@@ -135,7 +135,7 @@ public class Kicker
       }
 
       //LOCK LATCH
-      else if(prime_state == 4)
+      else if(prime_state == 3)
       {
         valve_2_A.set(false);
         valve_2_B.set(true);
@@ -144,7 +144,7 @@ public class Kicker
       }
 
       //SET KICKER
-      else if(prime_state == 5)
+      else if(prime_state == 4)
       {
           System.out.println("set kicker");
         if(hardKick)
@@ -182,8 +182,10 @@ public class Kicker
         primed = false;
         prev_count = curr_count;
 
-        valve_2_A.set(false);
-        valve_2_B.set(true);
+        valve_1_B.set(false);
+        valve_1_A.set(true);
+        valve_3_B.set(false);
+        valve_3_A.set(true);
     }
     else System.out.println("ERR: Kick without prime.");
   }

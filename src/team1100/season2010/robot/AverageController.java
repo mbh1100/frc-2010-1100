@@ -16,6 +16,11 @@ public class AverageController
         avg_value = 0;
     }
 
+    public int getSize()
+    {
+        return size_value_array;
+    }
+
     public AverageController()
     {
         this(5);

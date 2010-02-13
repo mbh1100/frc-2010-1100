@@ -95,6 +95,8 @@ public class ChainRotationMotor
         else if(pot.getAverageValue() <= pot_min - pot_deadband)
             newspeed = minSpeed;
 
+        System.out.println("\tSpeed sent: " + newspeed + "\t Potval: " + pot.getAverageValue());
+
         CRM_speed_setpoint.addNewValue(newspeed);
         chain_rotation_motor.set(CRM_speed_setpoint.getAverageValue());
       }
@@ -109,6 +111,12 @@ public class ChainRotationMotor
           if(pot.getAverageValue() < pot_center + pot_deadband && pot.getAverageValue() > pot_center - pot_deadband)
               return true;
           else return false;
+      }
+
+      public void resetArray()
+      {
+          for(int i=0; i<drive_direction_setpoint.getSize(); i++)
+              drive_direction_setpoint.addNewValue(0);
       }
 
       public void setDirect(double speed)

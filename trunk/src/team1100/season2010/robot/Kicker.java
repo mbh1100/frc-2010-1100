@@ -27,11 +27,7 @@ public class Kicker
   private Solenoid valve_2_B;
   private Solenoid valve_3_B;
   private Solenoid valve_3_A;
-  //private DigitalInput latch_mount;
   private DigitalInput limit_switch;
- // private DigitalInput latch_piston;
- // private DigitalInput kick_mount;
- // private DigitalInput kick_piston;
 
   private int prime_state;
   private int test_state;
@@ -51,11 +47,7 @@ public class Kicker
     valve_2_B = new Solenoid(8,4);
     valve_3_B = new Solenoid(8,6);
 
-    //latch_mount = new DigitalInput(4,4);
     limit_switch = new DigitalInput(4,4);
-   // latch_piston = new DigitalInput(4,3);
-    //kick_mount = new DigitalInput(4,2);
-   // kick_piston = new DigitalInput(4,1);
 
     if(limit_switch.get())
         primed = true;
@@ -110,13 +102,6 @@ public class Kicker
         System.out.println("open latch");
         prime_state++;
       }
-      /*else if(prime_state == 1)
-      {
-       // if(!latch_piston.get())
-          System.out.println("latch open");
-          prime_state++;
-      }*/
-
       //ARM KICKER
       else if(prime_state == 1)
       {
@@ -127,7 +112,6 @@ public class Kicker
       }
       else if(prime_state == 2)
       {
-      //  if(!kick_piston.get())
           if(limit_switch.get())
           {
             System.out.println("kicker armed");
@@ -188,13 +172,6 @@ public class Kicker
  
         primed = false;
         prev_count = curr_count;
-        
-        //valve_1_B.set(false);
-        //valve_1_A.set(true);
-
-
-        //valve_3_B.set(false);
-        //valve_3_A.set(true);
     }
     else
     {

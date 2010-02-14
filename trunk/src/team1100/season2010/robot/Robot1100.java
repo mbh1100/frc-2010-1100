@@ -46,7 +46,7 @@ public class Robot1100 extends IterativeRobot
 
     int prev_count;
 
-   // Kicker kicker;
+    Kicker kicker;
 
 
 
@@ -65,9 +65,7 @@ public class Robot1100 extends IterativeRobot
                 POT_front_CHANNEL_VAL, POT_back_CHANNEL_VAL,4);
         RDC.setInvertedMotor(true,true,true,true);
 
-
-
-      //  kicker = new Kicker();
+        kicker = new Kicker();
     }
 
     /**
@@ -76,8 +74,10 @@ public class Robot1100 extends IterativeRobot
     public void autonomousInit()
     {
         m_count = 0;
+        prev_count = 0;
         System.out.println("Autonomous Init");
-       // kicker.turnOnKicker();
+        kicker.turnOnKicker();
+        RDC.setDriveType(2);
     }
 
     /**
@@ -86,7 +86,6 @@ public class Robot1100 extends IterativeRobot
     public void autonomousPeriodic()
     {
         m_count++;
-        //System.out.println("AutoCount: " + m_count);
 
         //Runs periodically at 100Hz
         {
@@ -109,8 +108,8 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 5 == 0)
         {
             DashboardPacker.updateDashboard();
-            System.out.println("Packet Sent (Auto)");
 
+            
         }
 
         //Runs periodically at 10Hz.
@@ -122,11 +121,30 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 5Hz.
         if (m_count % 20 == 0)
         {
-          // kicker.primeKicker();
+           kicker.primeKicker();
         }
 
-       // if(m_count == 300)
-         //   kicker.kick();
+            if(m_count > 5 && m_count < 75) //wait 60
+                RDC.driveAutonomous(.3);
+            if(m_count > 75 && m_count < 110)
+                RDC.driveAutonomous(0);
+            if(m_count == 110)
+                kicker.kick(m_count);
+
+            if(m_count > 130 && m_count < 225)
+                RDC.driveAutonomous(.3);
+            if(m_count > 225 && m_count < 310)
+                RDC.driveAutonomous(0);
+            if(m_count == 311)
+                kicker.kick(m_count);
+
+            if(m_count > 312 && m_count < 402)
+                RDC.driveAutonomous(.3);
+            if(m_count > 402 && m_count < 511 )
+                RDC.driveAutonomous(0);
+            if(m_count == 512)
+                kicker.kick(m_count);
+        
     }
 
     /**
@@ -138,7 +156,7 @@ public class Robot1100 extends IterativeRobot
 
         System.out.println("TeleOp Initialized.");
 
-       // kicker.turnOnKicker();
+        kicker.turnOnKicker();
     }
 
     /**
@@ -147,9 +165,6 @@ public class Robot1100 extends IterativeRobot
     public void teleopPeriodic()
     {
         m_count++;
-        //System.out.println("TeleOp: "+ m_count);
-
-        //drive.tankDrive(joystick_1, joystick_2);
 
         //Runs periodically at 100Hz
         {
@@ -173,17 +188,6 @@ public class Robot1100 extends IterativeRobot
         {
             Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
-
-            //camera test:
-           /* AxisCamera camera = AxisCamera.getInstance();
-            try{
-                camera.getImage().free();
-            }
-            catch(AxisCameraException e){
-            }
-            catch(NIVisionException e){
-            }*/
-
 
             /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Tank
                 RDC.setDriveType(0);*/
@@ -231,20 +235,31 @@ public class Robot1100 extends IterativeRobot
 
             RDC.drive();
 
-            /*if(RDC.joystick_1.getRawButton(4))
+            if(RDC.joystick_1.getRawButton(4))
                 kicker.setHardSoft(true);
             
             if(RDC.joystick_1.getRawButton(5))
-                kicker.setHardSoft(false);*/
+                kicker.setHardSoft(false);
 
-
+            if (AxisCamera.getInstance().freshImage())
+            {
+                try
+                {
+                    System.out.println("image!");
+                    ColorImage image = AxisCamera.getInstance().getImage();
+                    Thread.yield();
+                    image.free();
+                }
+                catch (NIVisionException ex)
+                {
+                }
+                catch (AxisCameraException ex)
+                {
+                }
+            }
 
             
             //System.out.println(RDC.getPotVals());
-
-
-
-            //System.out.println("Pressure Switch: " + compressor.getPressureSwitchValue());
         }
 
         //Runs periodically at 10Hz.
@@ -262,16 +277,10 @@ public class Robot1100 extends IterativeRobot
 
         if(m_count % 15 == 0)
         {
-            //kicker.primeKicker();
+            kicker.primeKicker();
 
-            /*if(RDC.joystick_1.getTrigger())
-                kicker.kick(m_count);*/
-
-
-           /* if(RDC.joystick_1.getTrigger())
-            {
-                kicker.primeKicker();
-            }*/
+            if(RDC.joystick_1.getTrigger())
+                kicker.kick(m_count);
         }
 
 
@@ -286,8 +295,7 @@ public class Robot1100 extends IterativeRobot
     public void disabledInit()
     {
         m_count = 0;
-        //kicker.disarm();
-       // System.out.println("Disabled Init 1100 version");
+        kicker.disarm();
     }
 
     /**
@@ -296,7 +304,6 @@ public class Robot1100 extends IterativeRobot
     public void disabledPeriodic()
     {
         m_count++;
-       // System.out.println("Mcount =" + m_count);
 
         //Runs periodically at 100Hz
         {
@@ -319,7 +326,6 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 5 == 0)
         {
             DashboardPacker.updateDashboard();
-            //System.out.println("Packet Sent (D)");
             //System.out.println(RDC.getPotVals());
         }
 

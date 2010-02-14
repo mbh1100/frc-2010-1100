@@ -172,6 +172,15 @@ public class RobotDriveController
         }
     }
 
+    public void driveAutonomous(double speed)
+    {
+        if(!CRM_back.atCenter())
+            CRM_back.setCenter();
+        if(!CRM_front.atCenter())
+           CRM_front.setCenter();
+        goTankDriveAutonomous(speed);
+    }
+
     private void diagnostic()
     {
 
@@ -196,7 +205,6 @@ public class RobotDriveController
             CRM_back.setCenter();
         if(!CRM_front.atCenter())
            CRM_front.setCenter();
-        //tank_drive.tankDrive(joystick_1, joystick_2);
         goTankDrive();
     }
 
@@ -206,6 +214,14 @@ public class RobotDriveController
         front_left_motor.set(joystick_1.getY());
         back_right_motor.set(joystick_2.getY());
         back_left_motor.set(joystick_1.getY());
+    }
+
+    private void goTankDriveAutonomous(double spd)
+    {
+        front_right_motor.set(spd);
+        front_left_motor.set(spd);
+        back_right_motor.set(spd);
+        back_left_motor.set(spd);
     }
 
     private void carDrive()
@@ -388,31 +404,31 @@ public class RobotDriveController
 
     private void translationInit()
     {
-        CRM_back.setPotMax(548);
-        CRM_back.setPotCenter(481);
-        CRM_back.setPotMin(401);
+        CRM_back.setPotMax(547);
+        CRM_back.setPotCenter(478);
+        CRM_back.setPotMin(404);
         CRM_back.setMinSpeed(.4);
         CRM_back.setPCoeff(.7);
 
-        CRM_front.setPotCenter(501);
-        CRM_front.setPotMax(568);
-        CRM_front.setPotMin(432);
+        CRM_front.setPotCenter(502);
+        CRM_front.setPotMax(570);
+        CRM_front.setPotMin(434);
         CRM_front.setMinSpeed(.4);
         CRM_front.setPCoeff(.76);
     }
 
     private void rotationInit()
     {
-        CRM_back.setPotMax(514);
-        CRM_back.setPotCenter(481);
+        CRM_back.setPotMax(512);
+        CRM_back.setPotCenter(478);
         CRM_back.setPotMin(441);
         CRM_back.setMinSpeed(.4);
         CRM_back.setPCoeff(.7);
 
-        CRM_front.setPotCenter(501);
-        CRM_front.setPotMax(534);
-        CRM_front.setPotMin(467);
-        CRM_front.setMinSpeed(.4); // should this be -.4 to -.7?? -Jared
+        CRM_front.setPotCenter(502);
+        CRM_front.setPotMax(536);
+        CRM_front.setPotMin(468);
+        CRM_front.setMinSpeed(.4); 
         CRM_front.setPCoeff(.76);
     }
 

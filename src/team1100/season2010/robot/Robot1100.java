@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DigitalInput;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -50,6 +51,12 @@ public class Robot1100 extends IterativeRobot
 
     Kicker kicker;
 
+    AnalogChannel aut_delay_pot = new AnalogChannel(1,5);
+    int autoDelay;
+    DigitalInput aut_switch_1 = new DigitalInput(4,1);
+    DigitalInput aut_switch_2 = new DigitalInput(4,2);
+    DigitalInput aut_switch_3 = new DigitalInput(4,3);
+    int autoState;
 
 
     /**
@@ -80,6 +87,16 @@ public class Robot1100 extends IterativeRobot
         System.out.println("Autonomous Init");
         kicker.turnOnKicker();
         RDC.setDriveType(2);
+        autoDelay = aut_delay_pot.getAverageValue() + 100;
+        autoState = 0;
+        if(aut_switch_1.get())
+            autoState += 4;
+        if(aut_switch_2.get())
+            autoState += 2;
+        if(aut_switch_3.get())
+            autoState += 1;
+        System.out.println("Delay: " + autoDelay);
+        System.out.println("autoState " + autoState);
     }
 
     /**
@@ -126,28 +143,101 @@ public class Robot1100 extends IterativeRobot
            kicker.primeKicker();
         }
 
-            if(m_count > 5 && m_count < 75) //wait 60
-                RDC.driveAutonomous(.3);
-            if(m_count > 75 && m_count < 110)
-                RDC.driveAutonomous(0);
-            if(m_count == 110)
-                kicker.kick(m_count);
+        if(m_count < autoDelay + 5)
+            RDC.driveAutonomous(1, 0);
 
-            if(m_count > 130 && m_count < 225)
-                RDC.driveAutonomous(.3);
-            if(m_count > 225 && m_count < 310)
-                RDC.driveAutonomous(0);
-            if(m_count == 311)
-                kicker.kick(m_count);
+        if(m_count > autoDelay + 5 && m_count < autoDelay + 45) //wait 60
+            RDC.driveAutonomous(1, .3);
+        if(m_count > autoDelay + 45 && m_count < autoDelay + 110)
+            RDC.driveAutonomous(1, 0);
+        if(m_count == autoDelay + 110)
+        {
+            kicker.kick(m_count);
+            System.out.println("KICK.");
+        }
 
-            if(m_count > 312 && m_count < 402)
-                RDC.driveAutonomous(.3);
-            if(m_count > 402 && m_count < 511 )
-                RDC.driveAutonomous(0);
-            if(m_count == 512)
+        if(autoState == 1 || autoState == 2 || autoState == 5 || autoState == 6 || autoState == 7)
+        {
+            if(m_count > autoDelay + 130 && m_count < autoDelay + 205)
+                RDC.driveAutonomous(1, .3);
+            if(m_count > autoDelay + 205 && m_count < autoDelay + 310)
+                RDC.driveAutonomous(1, 0);
+            if(m_count == autoDelay + 311)
+            {
                 kicker.kick(m_count);
+                System.out.println("KICK.");
+            }
+        }
+
+        if(autoState == 2 || autoState == 7)
+        {
+            if(m_count > autoDelay + 312 && m_count < autoDelay + 377)
+                RDC.driveAutonomous(1, .3);
+            if(m_count > autoDelay + 377 && m_count < autoDelay + 511 )
+                RDC.driveAutonomous(1, 0);
+            if(m_count == autoDelay + 512)
+            {
+                kicker.kick(m_count);
+                System.out.println("KICK.");
+            }
+        }
+
+        if(autoState == 3)
+        {
+            if(m_count > autoDelay + 111 && m_count < autoDelay + 171)
+              RDC.driveAutonomous(2, 0);
+            if(m_count > autoDelay + 171 && m_count < autoDelay + 221)
+              RDC.driveAutonomous(2, .3);
+            if(m_count > autoDelay + 221 && m_count < autoDelay + 321)
+              RDC.driveAutonomous(1,0);
+        }
+
+        if(autoState == 5)
+        {
+            if(m_count > autoDelay + 311 && m_count < autoDelay + 371)
+              RDC.driveAutonomous(2, 0);
+            if(m_count > autoDelay + 371 && m_count < autoDelay + 421)
+              RDC.driveAutonomous(2, .3);
+            if(m_count > autoDelay + 421 && m_count < autoDelay + 521)
+              RDC.driveAutonomous(1,0);
+        }
+
+        if(autoState == 4)
+        {
+            if(m_count > autoDelay + 111 && m_count < autoDelay + 171)
+              RDC.driveAutonomous(2, 0);
+            if(m_count > autoDelay + 171 && m_count < autoDelay + 221)
+              RDC.driveAutonomous(2, -.3);
+            if(m_count > autoDelay + 221 && m_count < autoDelay + 321)
+              RDC.driveAutonomous(1,0);
+        }
+
+        if(autoState == 6)
+        {
+            if(m_count > autoDelay + 311 && m_count < autoDelay + 371)
+              RDC.driveAutonomous(2, 0);
+            if(m_count > autoDelay + 371 && m_count < autoDelay + 421)
+              RDC.driveAutonomous(2, -.3);
+            if(m_count > autoDelay + 421 && m_count < autoDelay + 521)
+              RDC.driveAutonomous(1,0);
+        }
+
+        if(autoState == 7)
+        {
+            if(m_count > 512 && m_count < 600)
+                RDC.driveAutonomous(1,.3);
+            if(m_count > 600 && m_count < 660)
+                RDC.driveAutonomous(1,0);
+        }
+
+        //System.out.println("pot val : " + aut_delay_pot.getAverageValue());
+        //System.out.println("switch 1: " + aut_switch_1.get());
+        //System.out.println("switch 2: " + aut_switch_2.get());
+        //System.out.println("switch_3: " + aut_switch_3.get());
         
     }
+
+
 
     /**
      * This function is called when the robot enters teleop mode.
@@ -262,7 +352,6 @@ public class Robot1100 extends IterativeRobot
                 }
             } */
 
-            
             //System.out.println(RDC.getPotVals());
         }
 
@@ -281,10 +370,10 @@ public class Robot1100 extends IterativeRobot
 
         if(m_count % 15 == 0)
         {
-           // kicker.primeKicker();
+            kicker.primeKicker();
 
-           // if(RDC.joystick_1.getTrigger())
-               // kicker.kick(m_count);
+            if(RDC.joystick_1.getTrigger())
+                kicker.kick(m_count);
         }
 
 

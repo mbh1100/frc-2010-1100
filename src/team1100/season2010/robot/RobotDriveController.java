@@ -194,13 +194,18 @@ public class RobotDriveController
             CRM_front.setDirect(0);
     }
 
-    public void driveAutonomous(double speed)
+    public void driveAutonomous(int driveType, double speed)
     {
-        if(!CRM_back.atCenter())
+        if(driveType == 1)
+        {
             CRM_back.setCenter();
-        if(!CRM_front.atCenter())
-           CRM_front.setCenter();
-        goTankDriveAutonomous(speed);
+            CRM_front.setCenter();
+            goTankDriveAutonomous(speed);
+        }
+        if(driveType == 2)
+        {
+            swerveDriveAutonomous(speed);
+        }
     }
 
     private void diagnostic()
@@ -275,10 +280,8 @@ public class RobotDriveController
 
     private void tankDrive()
     {
-        if(!CRM_back.atCenter())
-            CRM_back.setCenter();
-        if(!CRM_front.atCenter())
-           CRM_front.setCenter();
+        CRM_back.setCenter();
+        CRM_front.setCenter();
         goTankDrive();
     }
 
@@ -300,7 +303,6 @@ public class RobotDriveController
 
     private void carDrive()
     {
-        if(!CRM_front.atCenter())
            CRM_front.setCenter();
 
         drive_motor_speed_setpoint.addNewValue(-1* joystick_adjust_Y * joystick_2.getY());
@@ -315,7 +317,6 @@ public class RobotDriveController
 
     private void carDriveOneJoystick()
     {
-        if(!CRM_front.atCenter())
            CRM_front.setCenter();
 
         drive_motor_speed_setpoint.addNewValue(-1* joystick_adjust_Y *joystick_1.getY());
@@ -344,6 +345,19 @@ public class RobotDriveController
 
         CRM_back.setWheelDirection(joystick_adjust_X * joystick_1.getX());
         CRM_front.setWheelDirection(-1 * joystick_adjust_X * joystick_1.getX());
+    }
+
+    private void swerveDriveAutonomous(double spd)
+    {
+        drive_motor_speed_setpoint.addNewValue(spd);
+
+        front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
+        front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
+        back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
+        back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
+
+        CRM_back.setWheelDirection(1);
+        CRM_front.setWheelDirection(-1);
     }
 
     private void swerveDriveOneJoystick()

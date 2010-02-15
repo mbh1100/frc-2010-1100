@@ -4,10 +4,10 @@ package team1100.season2010.robot;
 import team1100.season2010.robot.DashboardPacker;
 import edu.wpi.first.wpilibj.IterativeRobot;
 
-import edu.wpi.first.wpilibj.camera.AxisCamera;
-import edu.wpi.first.wpilibj.camera.AxisCameraException;
-import edu.wpi.first.wpilibj.image.ColorImage;
-import edu.wpi.first.wpilibj.image.NIVisionException;
+//import edu.wpi.first.wpilibj.camera.AxisCamera;
+//import edu.wpi.first.wpilibj.camera.AxisCameraException;
+//import edu.wpi.first.wpilibj.image.ColorImage;
+//import edu.wpi.first.wpilibj.image.NIVisionException;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -199,6 +201,8 @@ public class Robot1100 extends IterativeRobot
                 RDC.setDriveType(4);
             if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Swerve Rotation
                 RDC.setDriveType(3);
+            if(RDC.joystick_1.getTrigger() && RDC.joystick_1.getRawButton(5)) //Diagnostic limit switches
+                RDC.setDriveType(5);
 
             if(RDC.joystick_2.getRawButton(6) && m_count - prev_count > 30)
             {
@@ -241,7 +245,7 @@ public class Robot1100 extends IterativeRobot
             if(RDC.joystick_1.getRawButton(5))
                 kicker.setHardSoft(false);
 
-            if (AxisCamera.getInstance().freshImage())
+           /* if (AxisCamera.getInstance().freshImage())
             {
                 try
                 {
@@ -256,7 +260,7 @@ public class Robot1100 extends IterativeRobot
                 catch (AxisCameraException ex)
                 {
                 }
-            }
+            } */
 
             
             //System.out.println(RDC.getPotVals());
@@ -277,10 +281,10 @@ public class Robot1100 extends IterativeRobot
 
         if(m_count % 15 == 0)
         {
-            kicker.primeKicker();
+           // kicker.primeKicker();
 
-            if(RDC.joystick_1.getTrigger())
-                kicker.kick(m_count);
+           // if(RDC.joystick_1.getTrigger())
+               // kicker.kick(m_count);
         }
 
 

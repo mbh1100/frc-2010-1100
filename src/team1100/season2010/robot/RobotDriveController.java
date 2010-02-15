@@ -5,12 +5,14 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.DigitalInput;
 
 public class RobotDriveController
 {
     private int drive_type;
     private int joystick_type;
     private int prev_drive_type;
+    private int diagnostic_state;
 
     private int joystick_adjust_X;
     private int joystick_adjust_Y;
@@ -27,6 +29,11 @@ public class RobotDriveController
     private int FLM_channel;
     private int BRM_channel;
     private int BLM_channel;
+
+    private DigitalInput limit_front_max;
+    private DigitalInput limit_front_min;
+    private DigitalInput limit_back_max;
+    private DigitalInput limit_back_min;
 
     //private RobotDrive tank_drive;
 
@@ -49,6 +56,7 @@ public class RobotDriveController
         drive_type = type;
         joystick_type = 0;
         prev_drive_type = 1;
+        diagnostic_state = 0;
 
         joystick_adjust_Y = 1;
         joystick_adjust_X = 1;
@@ -73,6 +81,11 @@ public class RobotDriveController
         CRM_back.setInvertedMotor(false);
         CRM_front.setInvertedMotor(true);
         translationInit();
+
+        limit_front_max = new DigitalInput(4,12);
+        limit_front_min = new DigitalInput(4,11);
+        limit_back_max = new DigitalInput(4,14);
+        limit_back_min = new DigitalInput(4,13);
     }
 
     /*Sets drive type (tank, swerve, car...)
@@ -154,6 +167,8 @@ public class RobotDriveController
               translate90_TwoJoystick();
           //else if(drive_type == 33)
               //rotate45_TwoJoystick();
+          else if(drive_type == 5)
+              diagnosticLimitSwitches();
         }
         else  //1 joystick
         {
@@ -169,7 +184,14 @@ public class RobotDriveController
               translate90_OneJoystick();
           //else if(drive_type == 33)
               //rotate45_OneJoystick();
+          else if(drive_type == 5)
+              diagnosticLimitSwitches();
         }
+
+        if(!limit_back_max.get() || !limit_back_min.get())
+            CRM_back.setDirect(0);
+        if(!limit_front_max.get() || !limit_front_min.get())
+            CRM_front.setDirect(0);
     }
 
     public void driveAutonomous(double speed)
@@ -197,6 +219,58 @@ public class RobotDriveController
         else if(joystick_2.getX()<-.4)
           CRM_front.setDirect(-.2);
         else CRM_front.setDirect(0);
+    }
+
+    private void diagnosticLimitSwitches()
+    {
+        if(joystick_1.getTrigger())
+        {
+            if(diagnostic_state == 0)  //find max
+            {
+                CRM_front.setDirect(.2);
+                if(!limit_front_max.get()) //hits limit switch
+                {
+                    CRM_front.setDirect(0);
+                    System.out.println("CRM_front pot_max: " + CRM_front.getPot());
+                    CRM_front.setPotMax(CRM_front.getPot());
+                    diagnostic_state++;
+                }
+            }
+            else if(diagnostic_state == 1) //find min
+            {
+                CRM_front.setDirect(-.2);
+                if(!limit_front_min.get()) //hits limit switch 2
+                {
+                    CRM_front.setDirect(0);
+                    System.out.println("CRM_front pot_min: " + CRM_front.getPot());
+                    CRM_front.setPotMin(CRM_front.getPot());
+                    diagnostic_state++;
+                }
+            }
+            else if(diagnostic_state == 2)  //find max
+            {
+                CRM_back.setDirect(.2);
+                if(!limit_back_max.get()) //hits limit switch
+                {
+                    CRM_back.setDirect(0);
+                    System.out.println("CRM_back pot_max: " + CRM_back.getPot());
+                    CRM_back.setPotMax(CRM_back.getPot());
+                    diagnostic_state++;
+                }
+            }
+            else if(diagnostic_state == 3) //find min
+            {
+                CRM_back.setDirect(-.2);
+                if(!limit_back_min.get()) //hits limit switch 2
+                {
+                    CRM_back.setDirect(0);
+                    System.out.println("CRM_back pot_min: " + CRM_back.getPot());
+                    CRM_back.setPotMin(CRM_back.getPot());
+                    diagnostic_state++;
+                }
+            }
+        }
+
     }
 
     private void tankDrive()

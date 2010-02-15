@@ -70,7 +70,7 @@ public class ChainRotationMotor
           pot_deadband = potDeadband;
       }
 
-      public double getPot()
+      public int getPot()
       {
           return pot.getAverageValue();
       }

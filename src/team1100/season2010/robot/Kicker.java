@@ -99,7 +99,7 @@ public class Kicker
       {
         valve_2_B.set(false);
         valve_2_A.set(true);
-        System.out.println("open latch");
+        //System.out.println("open latch");
         prime_state++;
       }
       //ARM KICKER
@@ -107,14 +107,14 @@ public class Kicker
       {
         valve_1_B.set(false);
         valve_1_A.set(true);
-        System.out.println("arm kicker");
+        //System.out.println("arm kicker");
         prime_state++;
       }
       else if(prime_state == 2)
       {
           if(limit_switch.get())
           {
-            System.out.println("kicker armed");
+            //System.out.println("kicker armed");
             prime_state++;
           }
       }
@@ -125,13 +125,13 @@ public class Kicker
         valve_2_A.set(false);
         valve_2_B.set(true);
         prime_state++;
-        System.out.println("lock latch");
+        //System.out.println("lock latch");
       }
 
       //SET KICKER
       else if(prime_state == 4)
       {
-          System.out.println("set kicker");
+          //System.out.println("set kicker");
         if(hardKick)
         {
           valve_1_A.set(false);
@@ -146,7 +146,7 @@ public class Kicker
             valve_3_B.set(false);
             valve_3_A.set(true);
         }
-          System.out.println("kicker set");
+          //System.out.println("kicker set");
         primed = true;
         prime_state = 0;
       }
@@ -159,6 +159,7 @@ public class Kicker
 
   public void kick(int curr_count)
   {
+    System.out.println("KICK!" + curr_count);
     if(primed == true && curr_count - prev_count >= 200)
     {
         System.out.println("kick!");
@@ -175,8 +176,8 @@ public class Kicker
     }
     else
     {
-        System.out.println("ERR: Kick without prime or before 2 seconds.");
-        System.out.println("m_count = " + curr_count + "; prevCount = " + prev_count + "; primed = " + primed);
+        //System.out.println("ERR: Kick without prime or before 2 seconds.");
+        //System.out.println("m_count = " + curr_count + "; prevCount = " + prev_count + "; primed = " + primed);
     }
   }
 
@@ -191,7 +192,7 @@ public class Kicker
     {
       valve_2_B.set(false);
       valve_2_A.set(true);
-      System.out.println("Latch piston rod extended.");
+      //System.out.println("Latch piston rod extended.");
       test_state++;
     }
     else if(test_state == 1)
@@ -199,7 +200,7 @@ public class Kicker
       valve_3_B.set(false);
       valve_1_B.set(false);
       valve_1_A.set(true);
-      System.out.println("Kicker piston rod extended.");
+      //System.out.println("Kicker piston rod extended.");
       test_state++;
     }
     else if(test_state == 2)
@@ -207,14 +208,14 @@ public class Kicker
       valve_1_A.set(false);
       valve_3_B.set(true);
       valve_1_B.set(true);
-      System.out.println("Kicker piston rod retracted.");
+      //System.out.println("Kicker piston rod retracted.");
       test_state++;
     }
     else if(test_state == 3)
     {
       valve_2_A.set(false);
       valve_2_B.set(true);
-      System.out.println("Latch piston rod retracted.");
+      //System.out.println("Latch piston rod retracted.");
       test_state = 0;
     }
   }

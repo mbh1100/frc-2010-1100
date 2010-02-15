@@ -95,7 +95,7 @@ public class ChainRotationMotor
         else if(pot.getAverageValue() <= pot_min - pot_deadband)
             newspeed = minSpeed;
 
-        System.out.println("\tSpeed sent: " + newspeed + "\t Potval: " + pot.getAverageValue());
+        //System.out.println("\tSpeed sent: " + newspeed + "\t Potval: " + pot.getAverageValue());
 
         CRM_speed_setpoint.addNewValue(newspeed);
         chain_rotation_motor.set(CRM_speed_setpoint.getAverageValue());

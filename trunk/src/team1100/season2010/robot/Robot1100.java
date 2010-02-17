@@ -66,8 +66,8 @@ public class Robot1100 extends IterativeRobot
     public void robotInit()
     {
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
-        this.setPeriod(0.01);
-        System.out.print("ROBOT STARTUP");
+        this.setPeriod(0.01);   //however, this appears to not actually have an effect
+        System.out.print("ROBOT STARTUP");  //and the period appears to be 50Hz.
 
         RDC = new RobotDriveController(0,joystick_1_channel,joystick_2_channel,
                 jag_FR_channel,jag_FL_channel,jag_BR_channel,jag_BL_channel,CRM_front_channel,CRM_back_channel,
@@ -75,6 +75,8 @@ public class Robot1100 extends IterativeRobot
         RDC.setInvertedMotor(true,true,true,true);
 
         kicker = new Kicker();
+
+        Watchdog.getInstance().setEnabled(true);
     }
 
     /**
@@ -87,7 +89,7 @@ public class Robot1100 extends IterativeRobot
         System.out.println("Autonomous Init");
         kicker.turnOnKicker();
         RDC.setDriveType(2);
-        autoDelay = aut_delay_pot.getAverageValue() + 100;
+        autoDelay = aut_delay_pot.getAverageValue()/2 + 50;
         autoState = 0;
         if(aut_switch_1.get())
             autoState += 4;
@@ -105,6 +107,8 @@ public class Robot1100 extends IterativeRobot
     public void autonomousPeriodic()
     {
         m_count++;
+
+        Watchdog.getInstance().feed();
 
         //Runs periodically at 100Hz
         {
@@ -258,6 +262,8 @@ public class Robot1100 extends IterativeRobot
     {
         m_count++;
 
+        Watchdog.getInstance().feed();
+
         //Runs periodically at 100Hz
         {
 
@@ -278,7 +284,6 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 20Hz.
         if (m_count % 5 == 0)
         {
-            Watchdog.getInstance().feed();
             DashboardPacker.updateDashboard();
 
             /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Tank
@@ -397,6 +402,8 @@ public class Robot1100 extends IterativeRobot
     public void disabledPeriodic()
     {
         m_count++;
+
+        Watchdog.getInstance().feed();
 
         //Runs periodically at 100Hz
         {

@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Relay;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -47,9 +48,14 @@ public class Robot1100 extends IterativeRobot
 
     RobotDriveController RDC;
 
+
+    AdvServo servo_lift = new AdvServo(4, 10);     // Instatntiating servo_lift
+    boolean freed = false;
+
     int prev_count;
 
     Kicker kicker;
+    Joystick operator_joystick = new Joystick(3);
 
     AnalogChannel aut_delay_pot = new AnalogChannel(1,5);
     int autoDelay;
@@ -57,6 +63,7 @@ public class Robot1100 extends IterativeRobot
     DigitalInput aut_switch_2 = new DigitalInput(4,2);
     DigitalInput aut_switch_3 = new DigitalInput(4,3);
     int autoState;
+
 
 
     /**
@@ -237,7 +244,7 @@ public class Robot1100 extends IterativeRobot
         //System.out.println("pot val : " + aut_delay_pot.getAverageValue());
         //System.out.println("switch 1: " + aut_switch_1.get());
         //System.out.println("switch 2: " + aut_switch_2.get());
-        //System.out.println("switch_3: " + aut_switch_3.get());
+        //System.out.println("switch_3: " + aut_switch_3.get() + "\n\n");
         
     }
 
@@ -334,10 +341,10 @@ public class Robot1100 extends IterativeRobot
 
             RDC.drive();
 
-            if(RDC.joystick_1.getRawButton(4))
+            if(operator_joystick.getRawButton(1))
                 kicker.setHardSoft(true);
             
-            if(RDC.joystick_1.getRawButton(5))
+            if(operator_joystick.getRawButton(3))
                 kicker.setHardSoft(false);
 
            /* if (AxisCamera.getInstance().freshImage())
@@ -358,6 +365,59 @@ public class Robot1100 extends IterativeRobot
             } */
 
             //System.out.println(RDC.getPotVals());
+
+            
+            
+            //.double joystickAdjusted;
+            /*double joystickXValue = RDC.joystick_1.getX();
+            System.out.println("Variable joystickXValue " + joystickXValue);
+
+            joystickAdjusted = ((joystickXValue / 2.0) + 0.5); //  /1.2;
+            if(joystickAdjusted > 0.7) {
+                joystickAdjusted = 0.7;
+            }
+
+            if(joystickAdjusted < 0.2) {
+                joystickAdjusted = 0.2;
+            }
+       
+           // servo_lift.set(joystickAdjusted);
+            System.out.println("The Joystick input is " + RDC.joystick_1.getX());*/
+            //System.out.println("The Adjusted Joystick is " + joystickAdjusted);
+
+
+            /*if(RDC.joystick_1.getX() > -0.1 && !freed)
+            {
+                servo_lift.set(.5);
+            }
+            else if(!freed)
+            {
+                servo_lift.free();
+                System.out.println ("Freed");
+                freed = true;
+            }*/
+            //System.out.println(RDC.joystick_1.getX());
+            //System.out.println (joystickAdjusted);
+            
+            if(operator_joystick.getRawButton(7) && operator_joystick.getRawButton(4) && !freed)
+                servo_lift.set(true);  //true = "forward"
+            if(operator_joystick.getRawButton(7) && operator_joystick.getRawButton(6) && !freed)
+                servo_lift.set(false); //false = "backward"
+            if(operator_joystick.getRawButton(7) && operator_joystick.getRawButton(5) && !freed)
+            {
+                servo_lift.free();
+                freed = true;
+            }
+            /*if(operator_joystick.getRawButton(7) && operator_joystick.getY() > .8)
+                System.out.println("lift up");
+            else if(operator_joystick.getRawButton(7) && operator_joystick.getY() < -.8)
+                System.out.println("lift down");
+            else System.out.println("lift still");*/
+
+            /*if(operator_joystick.getRawButton(9))
+                suction;*/
+
+
         }
 
         //Runs periodically at 10Hz.
@@ -377,12 +437,9 @@ public class Robot1100 extends IterativeRobot
         {
             kicker.primeKicker();
 
-            if(RDC.joystick_1.getTrigger())
+            if(operator_joystick.getRawButton(8))
                 kicker.kick(m_count);
         }
-
-
-
     }
 
 

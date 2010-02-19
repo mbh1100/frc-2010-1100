@@ -58,7 +58,7 @@ public class RobotDriveController
         prev_drive_type = 1;
         diagnostic_state = 0;
 
-        joystick_adjust_Y = 1;
+        joystick_adjust_Y = 1;  //JOYSTICK ADJUST LOCATION
         joystick_adjust_X = 1;
 
         joystick_1 = new Joystick(j1_channel);
@@ -188,10 +188,10 @@ public class RobotDriveController
               diagnosticLimitSwitches();
         }
 
-        if(!limit_back_max.get() || !limit_back_min.get())
+        /*if(!limit_back_max.get() || !limit_back_min.get())
             CRM_back.setDirect(0);
         if(!limit_front_max.get() || !limit_front_min.get())
-            CRM_front.setDirect(0);
+            CRM_front.setDirect(0);*/
     }
 
     public void driveAutonomous(int driveType, double speed)
@@ -362,6 +362,7 @@ public class RobotDriveController
 
     private void swerveDriveOneJoystick()
     {
+        //UNCOMMENT THE FOUR LINES BELOW TO USE Z-AXES OF JOYSTICKS TO ADJUST P-COEFF
        // System.out.println("\t\t\t\tPCOEFF: "+(joystick_1.getZ()+1)/2);
         //System.out.println("\t\t\t\tPCOEFF: " + (joystick_2.getZ()+1)/2);
        // CRM_back.setPCoeff((joystick_1.getZ()+1)/2);
@@ -496,13 +497,13 @@ public class RobotDriveController
         CRM_back.setPotCenter(478);
         CRM_back.setPotMin(404);
         CRM_back.setMinSpeed(.4);
-        CRM_back.setPCoeff(.7);
+        CRM_back.setPCoeff(.7);  //Adjust this pcoeff w/ value from z-axis of joystick 1
 
         CRM_front.setPotCenter(502);
         CRM_front.setPotMax(570);
         CRM_front.setPotMin(434);
         CRM_front.setMinSpeed(.4);
-        CRM_front.setPCoeff(.76);
+        CRM_front.setPCoeff(.76); //Adjust this pcoeff w/ value from z-axis of joystick 2
     }
 
     private void rotationInit()
@@ -511,13 +512,13 @@ public class RobotDriveController
         CRM_back.setPotCenter(478);
         CRM_back.setPotMin(441);
         CRM_back.setMinSpeed(.4);
-        CRM_back.setPCoeff(.7);
+        CRM_back.setPCoeff(.7);  //make sure to adjust this one too!!!
 
         CRM_front.setPotCenter(502);
         CRM_front.setPotMax(536);
         CRM_front.setPotMin(468);
         CRM_front.setMinSpeed(.4); 
-        CRM_front.setPCoeff(.76);
+        CRM_front.setPCoeff(.76); //make sure to adjust this one to!!
     }
 
 }

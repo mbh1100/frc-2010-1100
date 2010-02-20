@@ -75,6 +75,11 @@ public class ChainRotationMotor
           return pot.getAverageValue();
       }
 
+      public double getPWM()
+      {
+          return CRM_speed_setpoint.getAverageValue();
+      }
+
       public void setWheelDirection(double position)
       {
         drive_direction_setpoint.addNewValue(position);

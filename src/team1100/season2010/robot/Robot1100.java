@@ -157,7 +157,7 @@ public class Robot1100 extends IterativeRobot
            kicker.primeKicker();
         }
 
-        if(m_count < autoDelay + 5)
+        /*if(m_count < autoDelay + 5)
             RDC.driveAutonomous(1, 0);
 
         if(m_count > autoDelay + 5 && m_count < autoDelay + 45) //wait 60
@@ -242,12 +242,12 @@ public class Robot1100 extends IterativeRobot
                 RDC.driveAutonomous(1,.3);
             if(m_count > 600 && m_count < 660)
                 RDC.driveAutonomous(1,0);
-        }
+        }*/
 
         //System.out.println("pot val : " + aut_delay_pot.getAverageValue());
-        //System.out.println("switch 1: " + aut_switch_1.get());
-        //System.out.println("switch 2: " + aut_switch_2.get());
-        //System.out.println("switch_3: " + aut_switch_3.get() + "\n\n");
+        System.out.println("switch 1: " + aut_switch_1.get());
+        System.out.println("switch 2: " + aut_switch_2.get());
+        System.out.println("switch_3: " + aut_switch_3.get() + "\n\n");
     }
 
 
@@ -363,6 +363,12 @@ public class Robot1100 extends IterativeRobot
                 {
                 }
             } */
+
+
+            
+            System.out.println(RDC.getPWMVals());
+
+
 
             //System.out.println(RDC.getPotVals());
 

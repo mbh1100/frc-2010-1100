@@ -51,6 +51,7 @@ public class Robot1100 extends IterativeRobot
 
     AdvServo servo_lift = new AdvServo(4, 10);     // Instatntiating servo_lift
     boolean freed = false;
+    LiftMotor lift_motor;
 
     int prev_count;
 
@@ -73,15 +74,17 @@ public class Robot1100 extends IterativeRobot
     public void robotInit()
     {
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
-        this.setPeriod(0.01);   //however, this appears to not actually have an effect
-        System.out.print("ROBOT STARTUP");  //and the period appears to be 50Hz.
+        this.setPeriod(0.01);   //however, this appears to not actually have an effect (?)
+        System.out.print("ROBOT STARTUP");  //and the period appears to be 50Hz according to Mark
 
         RDC = new RobotDriveController(0,joystick_1_channel,joystick_2_channel,
                 jag_FR_channel,jag_FL_channel,jag_BR_channel,jag_BL_channel,CRM_front_channel,CRM_back_channel,
                 POT_front_CHANNEL_VAL, POT_back_CHANNEL_VAL,4);
-        RDC.setInvertedMotor(true,true,true,true);
+        RDC.setInvertedMotor(true,false,true,false);  //front r, front l, back r, back l
 
         kicker = new Kicker();
+
+        //lift_motor = new LiftMotor(4(slot),8(channel));
 
         Watchdog.getInstance().setEnabled(true);
     }
@@ -245,7 +248,6 @@ public class Robot1100 extends IterativeRobot
         //System.out.println("switch 1: " + aut_switch_1.get());
         //System.out.println("switch 2: " + aut_switch_2.get());
         //System.out.println("switch_3: " + aut_switch_3.get() + "\n\n");
-        
     }
 
 
@@ -256,9 +258,7 @@ public class Robot1100 extends IterativeRobot
     public void teleopInit()
     {
         m_count = 0;
-
         System.out.println("TeleOp Initialized.");
-
         kicker.turnOnKicker();
     }
 
@@ -409,10 +409,10 @@ public class Robot1100 extends IterativeRobot
                 freed = true;
             }
             /*if(operator_joystick.getRawButton(7) && operator_joystick.getY() > .8)
-                System.out.println("lift up");
+                lift_motor.up();
             else if(operator_joystick.getRawButton(7) && operator_joystick.getY() < -.8)
-                System.out.println("lift down");
-            else System.out.println("lift still");*/
+                lift_motor.down();
+            else lift_motor.stop()*/
 
             /*if(operator_joystick.getRawButton(9))
                 suction;*/

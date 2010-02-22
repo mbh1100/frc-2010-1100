@@ -107,6 +107,11 @@ public class RobotDriveController
             rotationInit();
     }
 
+    public int getDriveType ()
+    {
+        return drive_type;
+    }
+
     //@param type: 0 = one joystick mode, 1 = two joystick mode
     public void setJoystickType(int type)
     {
@@ -153,12 +158,19 @@ public class RobotDriveController
 
     public String getPotVals()
     {
-        return "CRM Front: " + CRM_front.getPot() + "\n\tCRM Back: " + CRM_back.getPot() + "\n";
+        return "POT VALS: + \nCRM Front: " + CRM_front.getPot() + "\n\tCRM Back: " + CRM_back.getPot() + "\n";
     }
 
     public String getPWMVals()
     {
-        return "CRM Front: " + CRM_front.getPWM() + "\n\tCRM Back: " + CRM_back.getPWM() + "\n";
+        return "PWM VALS: \nCRM Front: " + CRM_front.getPWM() + "\n\tCRM Back: " + CRM_back.getPWM() + "\n";
+    }
+
+    public String getJoystickVals()
+    {
+        if(joystick_type == 1)
+          return "JOYSTICK VALS: \n X:" + joystick_1.getX() + "\n\tY: " + joystick_2.getY() + "\n\n";
+        else return "JOYSTICK VALS: \n X:" + joystick_1.getX() + "\n\tY: " + joystick_1.getY() + "\n\n";
     }
 
     public void drive()
@@ -181,6 +193,8 @@ public class RobotDriveController
               //rotate45_TwoJoystick();
           else if(drive_type == 5)
               diagnosticLimitSwitches();
+          else if(drive_type == 6)
+              pitSetup();
         }
         else  //1 joystick
         {
@@ -198,6 +212,8 @@ public class RobotDriveController
               //rotate45_OneJoystick();
           else if(drive_type == 5)
               diagnosticLimitSwitches();
+          else if(drive_type == 6)
+              pitSetup();
         }
 
         /*if(!limit_back_max.get() || !limit_back_min.get())
@@ -223,8 +239,7 @@ public class RobotDriveController
     private void diagnostic()
     {
 
-        System.out.println("CRM front: " + CRM_front.getPot());
-        System.out.println("\tCRM back: " + CRM_back.getPot());
+        System.out.println(getPotVals());
 
         if(joystick_1.getX()>.4)
           CRM_back.setDirect(.2);
@@ -495,6 +510,13 @@ public class RobotDriveController
             CRM_front.setWheelDirection(-joystick_adjust_X);
         }
     }*/
+
+
+    public void pitSetup()
+    {
+        CRM_front.setCenter();
+        CRM_back.setCenter();
+    }
 
     public void setInvertedMotor(boolean m1, boolean m2, boolean m3, boolean m4)
     {

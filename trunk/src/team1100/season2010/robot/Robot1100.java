@@ -157,7 +157,7 @@ public class Robot1100 extends IterativeRobot
            kicker.primeKicker();
         }
 
-        /*if(m_count < autoDelay + 5)
+        if(m_count < autoDelay + 5)
             RDC.driveAutonomous(1, 0);
 
         if(m_count > autoDelay + 5 && m_count < autoDelay + 45) //wait 60
@@ -242,7 +242,8 @@ public class Robot1100 extends IterativeRobot
                 RDC.driveAutonomous(1,.3);
             if(m_count > 600 && m_count < 660)
                 RDC.driveAutonomous(1,0);
-        }*/
+        }
+        //uncomented by alex on sunday
 
         //System.out.println("pot val : " + aut_delay_pot.getAverageValue());
         System.out.println("switch 1: " + aut_switch_1.get());
@@ -305,6 +306,12 @@ public class Robot1100 extends IterativeRobot
                 RDC.setDriveType(3);
             if(RDC.joystick_1.getTrigger() && RDC.joystick_1.getRawButton(5)) //Diagnostic limit switches
                 RDC.setDriveType(5);
+            if(RDC.joystick_1.getRawButton(4) && RDC.joystick_1.getRawButton(5))  //Diagnostic pit setup
+                if(RDC.joystick_2.getRawButton(4) && RDC.joystick_2.getRawButton(5))
+                {
+                    RDC.setDriveType(6);
+                    kicker.turnOnKicker();
+                }
 
             if(RDC.joystick_2.getRawButton(6) && m_count - prev_count > 30)
             {
@@ -364,9 +371,10 @@ public class Robot1100 extends IterativeRobot
                 }
             } */
 
-
-            
+            if(RDC.getDriveType() != 4)
+              System.out.println(RDC.getPotVals());
             System.out.println(RDC.getPWMVals());
+            System.out.println(RDC.getJoystickVals());
 
 
 
@@ -441,8 +449,9 @@ public class Robot1100 extends IterativeRobot
 
         if(m_count % 15 == 0)
         {
-            kicker.primeKicker();
-
+            //if(RDC.joystick_1.getTrigger() && RDC.joystick_2.getTrigger()) // priming kicker test!!! remove 'if' for competition
+                kicker.primeKicker();
+                System.out.println("priming for kick");//added by alex to test on saturday
             if(operator_joystick.getRawButton(8))
                 kicker.kick(m_count);
         }

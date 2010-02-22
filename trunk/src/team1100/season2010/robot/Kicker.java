@@ -49,9 +49,16 @@ public class Kicker
 
     limit_switch = new DigitalInput(4,4);
 
-    if(limit_switch.get())
-        primed = true;
-    else primed = false;
+    if(!limit_switch.get())
+       {
+         primed = true;
+         //System.out.println("limit_switch true");//added by alex to test on saturday
+       }
+    else
+       {
+         primed = false;
+         //System.out.println("limit_switch falsen (1)");//added by alex to test on saturday
+       }
 
     compressor = new Compressor(4,5,4,1);
     compressor.start();
@@ -112,7 +119,7 @@ public class Kicker
       }
       else if(prime_state == 2)
       {
-          if(limit_switch.get())
+          if(!limit_switch.get())
           {
             //System.out.println("kicker armed");
             prime_state++;
@@ -152,17 +159,19 @@ public class Kicker
       }
 
     }
-    if(!limit_switch.get())
+    if(limit_switch.get())
+       {
           primed = false;
-
+          //System.out.println("limit_switch false (2)");//added by alex to test on saturday
+       }
   }
 
   public void kick(int curr_count)
   {
-    System.out.println("KICK!" + curr_count);
+    //System.out.println("KICK!" + curr_count);
     if(primed == true && curr_count - prev_count >= 200)
     {
-        System.out.println("kick!");
+        //System.out.println("kick!");
         
         valve_2_B.set(false);
         valve_2_A.set(true);

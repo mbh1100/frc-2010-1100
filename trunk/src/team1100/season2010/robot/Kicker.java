@@ -28,6 +28,7 @@ public class Kicker
   private Solenoid valve_3_B;
   private Solenoid valve_3_A;
   private DigitalInput limit_switch;
+  private final static int TIMING_DELAY = 200;
 
   private int prime_state;
   private int test_state;
@@ -38,7 +39,7 @@ public class Kicker
     hardKick = true;
     prime_state = 0;
     test_state = 0;
-    prev_count = -200;
+    prev_count = -TIMING_DELAY;
 
     valve_1_A = new Solenoid(8,1);
     valve_2_A = new Solenoid(8,3);
@@ -68,7 +69,7 @@ public class Kicker
   public void turnOnKicker()
   {
       compressor.start();
-      prev_count = -200;
+      prev_count = -TIMING_DELAY;
   }
 
   public void setHardSoft(boolean hard_or_soft)
@@ -169,7 +170,7 @@ public class Kicker
   public void kick(int curr_count)
   {
     //System.out.println("KICK!" + curr_count);
-    if(primed == true && curr_count - prev_count >= 200)
+    if(primed == true && curr_count - prev_count >= TIMING_DELAY)
     {
         //System.out.println("kick!");
         

@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStationEnhancedIO;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Relay;
 
@@ -55,6 +56,10 @@ public class Robot1100 extends IterativeRobot
 
     int prev_count;
 
+    //Camera camera;
+    
+    //DriverStationEnhancedIO psoc;
+
     Kicker kicker;
     Joystick operator_joystick = new Joystick(3);
 
@@ -73,6 +78,8 @@ public class Robot1100 extends IterativeRobot
      */
     public void robotInit()
     {
+
+       //camera = new Camera();
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
         this.setPeriod(0.01);   //however, this appears to not actually have an effect (?)
         System.out.print("ROBOT STARTUP");  //and the period appears to be 50Hz according to Mark
@@ -87,6 +94,8 @@ public class Robot1100 extends IterativeRobot
         //lift_motor = new LiftMotor(4(slot),8(channel));
 
         Watchdog.getInstance().setEnabled(true);
+
+       // psoc = DriverStation.getInstance().getEnhancedIO();
     }
 
     /**
@@ -152,7 +161,7 @@ public class Robot1100 extends IterativeRobot
         }
 
         //Runs periodically at 5Hz.
-        if (m_count % 20 == 0)
+        /*if (m_count % 20 == 0)
         {
            kicker.primeKicker();
         }
@@ -243,12 +252,20 @@ public class Robot1100 extends IterativeRobot
             if(m_count > 600 && m_count < 660)
                 RDC.driveAutonomous(1,0);
         }
-        //uncomented by alex on sunday
+        */
 
         //System.out.println("pot val : " + aut_delay_pot.getAverageValue());
         System.out.println("switch 1: " + aut_switch_1.get());
         System.out.println("switch 2: " + aut_switch_2.get());
         System.out.println("switch_3: " + aut_switch_3.get() + "\n\n");
+        autoState = 0;
+        if(aut_switch_1.get())
+            autoState += 4;
+        if(aut_switch_2.get())
+            autoState += 2;
+        if(aut_switch_3.get())
+            autoState += 1;
+        System.out.println("AUTOSTATE: " + autoState);
     }
 
 
@@ -297,16 +314,43 @@ public class Robot1100 extends IterativeRobot
             /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Tank
                 RDC.setDriveType(0);*/
             if(RDC.joystick_1.getRawButton(8)||RDC.joystick_1.getRawButton(9))//Car
+            {
+               // turnOffLEDs();
                 RDC.setDriveType(1);
+               /* try
+                {
+                    Watchdog.getInstance().feed();
+                    psoc.setLED(1, true);
+                }
+                catch(DriverStationEnhancedIO.EnhancedIOException e){}*/
+            }
             if(RDC.joystick_1.getRawButton(10)||RDC.joystick_1.getRawButton(11))//Swerve
+            {
+               /* turnOffLEDs();
+                try
+                {
+                    Watchdog.getInstance().feed();
+                    psoc.setLED(2, true);
+                }
+                catch(DriverStationEnhancedIO.EnhancedIOException e){} */
                 RDC.setDriveType(2);
+            }
             if(RDC.joystick_2.getTrigger() && RDC.joystick_2.getRawButton(2)) //Diagnostic
                 RDC.setDriveType(4);
             if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Swerve Rotation
+            {
+               /* turnOffLEDs();
+                try
+                {
+                    Watchdog.getInstance().feed();
+                    psoc.setLED(3, true);
+                }
+                catch(DriverStationEnhancedIO.EnhancedIOException e){} */
                 RDC.setDriveType(3);
+            }
             if(RDC.joystick_1.getTrigger() && RDC.joystick_1.getRawButton(5)) //Diagnostic limit switches
                 RDC.setDriveType(5);
-            if(RDC.joystick_1.getRawButton(4) && RDC.joystick_1.getRawButton(5))  //Diagnostic pit setup
+            if(RDC.joystick_2.getRawButton(10) && RDC.joystick_2.getRawButton(11))  //Diagnostic pit setup
                 if(RDC.joystick_2.getRawButton(4) && RDC.joystick_2.getRawButton(5))
                 {
                     RDC.setDriveType(6);
@@ -346,6 +390,8 @@ public class Robot1100 extends IterativeRobot
                 prev_count = m_count;
             }
 
+            Watchdog.getInstance().feed();
+
             RDC.drive();
 
             if(operator_joystick.getRawButton(1))
@@ -354,7 +400,7 @@ public class Robot1100 extends IterativeRobot
             if(operator_joystick.getRawButton(3))
                 kicker.setHardSoft(false);
 
-           /* if (AxisCamera.getInstance().freshImage())
+         /*  if (AxisCamera.getInstance().freshImage())
             {
                 try
                 {
@@ -431,7 +477,7 @@ public class Robot1100 extends IterativeRobot
             /*if(operator_joystick.getRawButton(9))
                 suction;*/
 
-
+            Watchdog.getInstance().feed();
         }
 
         //Runs periodically at 10Hz.
@@ -455,8 +501,40 @@ public class Robot1100 extends IterativeRobot
             if(operator_joystick.getRawButton(8))
                 kicker.kick(m_count);
         }
+
+        /*try
+        {
+            Watchdog.getInstance().feed();
+            if (m_count % 200 == 0)
+            {
+                psoc.setLED(1, true);
+            }
+
+            if (m_count % 300 == 0)
+            {
+                psoc.setLED(1, false);
+            }
+        }
+        catch(DriverStationEnhancedIO.EnhancedIOException e){}*/
     }
 
+
+  /*  public void turnOffLEDs()
+    {
+        try
+        {
+            psoc.setLED(1, false);
+            psoc.setLED(2, false);
+            psoc.setLED(3, false);
+            psoc.setLED(4, false);
+            psoc.setLED(5, false);
+            psoc.setLED(6, false);
+            psoc.setLED(7, false);
+            psoc.setLED(8, false);
+        }
+        catch(DriverStationEnhancedIO.EnhancedIOException e){}
+    }
+*/
 
 
     /**

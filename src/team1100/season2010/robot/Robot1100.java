@@ -71,6 +71,10 @@ public class Robot1100 extends IterativeRobot
     int autoState;
 
 
+    double lastTime;
+    double currentTime = 0;
+    double maxDifference;
+
 
     /**
      * This function is run when the robot is first started up and should be
@@ -288,9 +292,26 @@ public class Robot1100 extends IterativeRobot
         m_count++;
 
         Watchdog.getInstance().feed();
+        double pavlovsWatch = Watchdog.getInstance().getExpiration();
+        System.out.println(pavlovsWatch);
 
         //Runs periodically at 100Hz
         {
+
+            currentTime = System.currentTimeMillis();
+            double difference = currentTime - lastTime;
+
+            if ((difference >= maxDifference) && (difference <= 1234567890000.0))
+            {
+                maxDifference = difference;
+                System.out.println("                                Too long " + maxDifference);
+            }
+            else
+            {
+                System.out.println ("   slick!");
+            }
+            
+            lastTime = currentTime;
 
         }
 
@@ -421,29 +442,6 @@ public class Robot1100 extends IterativeRobot
               System.out.println(RDC.getPotVals());
             System.out.println(RDC.getPWMVals());
             System.out.println(RDC.getJoystickVals());
-
-
-
-            //System.out.println(RDC.getPotVals());
-
-            
-            
-            //.double joystickAdjusted;
-            /*double joystickXValue = RDC.joystick_1.getX();
-            System.out.println("Variable joystickXValue " + joystickXValue);
-
-            joystickAdjusted = ((joystickXValue / 2.0) + 0.5); //  /1.2;
-            if(joystickAdjusted > 0.7) {
-                joystickAdjusted = 0.7;
-            }
-
-            if(joystickAdjusted < 0.2) {
-                joystickAdjusted = 0.2;
-            }
-       
-           // servo_lift.set(joystickAdjusted);
-            System.out.println("The Joystick input is " + RDC.joystick_1.getX());*/
-            //System.out.println("The Adjusted Joystick is " + joystickAdjusted);
 
 
             /*if(RDC.joystick_1.getX() > -0.1 && !freed)

@@ -238,11 +238,8 @@ public class RobotDriveController
 
     private void diagnostic()
     {
-
         System.out.println(getPotVals());
-        //.out.println("CRM Back =" + CRM_back.getPot());
-                // I'm trying to get a printout of the CRM_back pot.  I'm also not sure why it says there is an error
-                // is it not working because its in a private void?  but there is a print out right abouve it...
+
         if(joystick_1.getX()>.4)
           CRM_back.setDirect(.2);
         else if(joystick_1.getX()<-.4)
@@ -361,11 +358,6 @@ public class RobotDriveController
 
     private void swerveDrive()
     {
-       // System.out.println("\t\t\t\tPCOEFF: "+(joystick_1.getZ()+1)/2);
-        //System.out.println("\t\t\t\tPCOEFF: " + (joystick_2.getZ()+1)/2);
-       // CRM_back.setPCoeff((joystick_1.getZ()+1)/2);
-        //CRM_front.setPCoeff((joystick_2.getZ()+1)/2);
-
         drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_2.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
@@ -439,11 +431,6 @@ public class RobotDriveController
 
     private void swerveRotationDrive()
     {
-        //CRM_back.setPCoeff((joystick_1.getZ()+1)/2);
-        //CRM_front.setPCoeff((joystick_1.getZ()+1)/2);
-        //System.out.println("\t\t\t\tPCOEFF: "+(joystick_1.getZ()+1)/2);
-        //System.out.println("\t\t\t\tPCOEFF: " + (joystick_2.getZ()+1)/2);
-
         drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_2.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
@@ -457,11 +444,6 @@ public class RobotDriveController
 
     private void swerveRotationDriveOneJoystick()
     {
-        //CRM_back.setPCoeff((joystick_1.getZ()+1)/2);
-        //CRM_front.setPCoeff((joystick_1.getZ()+1)/2);
-        //System.out.println("\t\t\t\tPCOEFF: "+(joystick_1.getZ()+1)/2);
-        //System.out.println("\t\t\t\tPCOEFF: " + (joystick_2.getZ()+1)/2);
-
         drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_1.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
@@ -520,6 +502,28 @@ public class RobotDriveController
     {
         CRM_front.setCenter();
         CRM_back.setCenter();
+    }
+
+    public void getPCoeffs()
+    {
+        //Z-Axis of joystick 1 controls the pCoeffs of the CRMs
+        //Z-Axis of joystick 2 controls the minSpeed of the CRMs
+        System.out.println("\t\t\t\tPCOEFF: "+(joystick_1.getZ()+1)/2);
+        System.out.println("\t\t\t\tMINSPEED: " + (joystick_2.getZ()+1)/2);
+        CRM_back.setPCoeff((joystick_1.getZ()+1)/2);
+        CRM_front.setPCoeff((joystick_1.getZ()+1)/2);
+        CRM_back.setMinSpeed((joystick_2.getZ()+1)/2);
+        CRM_front.setMinSpeed((joystick_2.getZ()+1)/2);
+
+        drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_1.getY());
+
+        front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
+        front_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
+        back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
+        back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
+
+        CRM_back.setWheelDirection(joystick_adjust_X * joystick_1.getX());
+        CRM_front.setWheelDirection(-joystick_adjust_X * joystick_1.getX());
     }
 
     public void setInvertedMotor(boolean m1, boolean m2, boolean m3, boolean m4)

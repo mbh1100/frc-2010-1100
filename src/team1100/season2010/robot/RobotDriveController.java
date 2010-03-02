@@ -118,6 +118,11 @@ public class RobotDriveController
         joystick_type = type;
     }
 
+    public int getJoystickType()
+    {
+        return joystick_type;
+    }
+
     public void change90Mode()
     {
         if(drive_type == 22)
@@ -195,6 +200,8 @@ public class RobotDriveController
               diagnosticLimitSwitches();
           else if(drive_type == 6)
               pitSetup();
+          else if(drive_type == 7)
+              setPCoeffsDriveSetup();
         }
         else  //1 joystick
         {
@@ -214,6 +221,8 @@ public class RobotDriveController
               diagnosticLimitSwitches();
           else if(drive_type == 6)
               pitSetup();
+          else if(drive_type == 7)
+              setPCoeffsDriveSetup();
         }
 
         /*if(!limit_back_max.get() || !limit_back_min.get())
@@ -384,14 +393,6 @@ public class RobotDriveController
 
     private void swerveDriveOneJoystick()
     {
-        //UNCOMMENT THE FOUR LINES BELOW TO USE Z-AXES OF JOYSTICKS TO ADJUST P-COEFF
-        /*System.out.println("\t\t\t\tPCOEFF: "+(joystick_1.getZ()+1)/2);
-        System.out.println("\t\t\t\tMINSPEED: " + (joystick_2.getZ()+1)/2);
-        CRM_back.setPCoeff((joystick_1.getZ()+1)/2);
-        CRM_front.setPCoeff((joystick_1.getZ()+1)/2);
-        CRM_back.setMinSpeed((joystick_2.getZ()+1)/2);
-        CRM_front.setMinSpeed((joystick_2.getZ()+1)/2);*/
-
         drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_1.getY());
 
         front_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
@@ -469,7 +470,7 @@ public class RobotDriveController
           CRM_back.setWheelDirection(joystick_adjust_X);
           CRM_front.setWheelDirection(joystick_adjust_X);
         }
-        if(joystick_1.getX()>0)
+       else
         {
             CRM_back.setWheelDirection(-joystick_adjust_X);
             CRM_front.setWheelDirection(-joystick_adjust_X);
@@ -490,7 +491,7 @@ public class RobotDriveController
           CRM_back.setWheelDirection(joystick_adjust_X);
           CRM_front.setWheelDirection(joystick_adjust_X);
         }
-        if(joystick_1.getX()>0)
+        else
         {
             CRM_back.setWheelDirection(-joystick_adjust_X);
             CRM_front.setWheelDirection(-joystick_adjust_X);
@@ -504,7 +505,7 @@ public class RobotDriveController
         CRM_back.setCenter();
     }
 
-    public void getPCoeffs()
+    public void setPCoeffsDriveSetup()
     {
         //Z-Axis of joystick 1 controls the pCoeffs of the CRMs
         //Z-Axis of joystick 2 controls the minSpeed of the CRMs

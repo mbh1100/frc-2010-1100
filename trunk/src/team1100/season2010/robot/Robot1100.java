@@ -52,7 +52,10 @@ public class Robot1100 extends IterativeRobot
 
     AdvServo servo_lift = new AdvServo(4, 10);     // Instatntiating servo_lift
     boolean freed = false;
-    LiftMotor lift_motor;
+    int prev_joystick_mode = 0;
+    boolean set = false;
+    boolean reset = true;
+    Lift lift;
 
     int prev_count;
 
@@ -95,7 +98,7 @@ public class Robot1100 extends IterativeRobot
 
         kicker = new Kicker();
 
-        //lift_motor = new LiftMotor(4(slot),8(channel));
+        //lift = new Lift(4(slot),8(channel));
 
         Watchdog.getInstance().setEnabled(true);
 
@@ -377,6 +380,9 @@ public class Robot1100 extends IterativeRobot
                     RDC.setDriveType(6);
                     kicker.turnOnKicker();
                 }
+            if(RDC.joystick_2.getRawButton(9)&&RDC.joystick_2.getRawButton(8))
+                if(RDC.joystick_2.getTrigger())
+                    RDC.setDriveType(7);
 
             if(RDC.joystick_2.getRawButton(6) && m_count - prev_count > 30)
             {
@@ -421,43 +427,14 @@ public class Robot1100 extends IterativeRobot
             if(operator_joystick.getRawButton(3))
                 kicker.setHardSoft(false);
 
-         /*  if (AxisCamera.getInstance().freshImage())
-            {
-                try
-                {
-                    System.out.println("image!");
-                    ColorImage image = AxisCamera.getInstance().getImage();
-                    Thread.yield();
-                    image.free();
-                }
-                catch (NIVisionException ex)
-                {
-                }
-                catch (AxisCameraException ex)
-                {
-                }
-            } */
-
+         
             if(RDC.getDriveType() != 4)
               System.out.println(RDC.getPotVals());
             System.out.println(RDC.getPWMVals());
             System.out.println(RDC.getJoystickVals());
 
 
-            /*if(RDC.joystick_1.getX() > -0.1 && !freed)
-            {
-                servo_lift.set(.5);
-            }
-            else if(!freed)
-            {
-                servo_lift.free();
-                System.out.println ("Freed");
-                freed = true;
-            }*/
-            //System.out.println(RDC.joystick_1.getX());
-            //System.out.println (joystickAdjusted);
-            
-            if(operator_joystick.getRawButton(7) && operator_joystick.getRawButton(4) && !freed)
+            /*if(operator_joystick.getRawButton(7) && operator_joystick.getRawButton(4) && !freed)
                 servo_lift.set(true);  //true = "forward"
             if(operator_joystick.getRawButton(7) && operator_joystick.getRawButton(6) && !freed)
                 servo_lift.set(false); //false = "backward"
@@ -465,12 +442,41 @@ public class Robot1100 extends IterativeRobot
             {
                 servo_lift.free();
                 freed = true;
+            }*/
+
+            if(operator_joystick.getRawButton(7))
+            {
+                lift.lock(false);
+                reset = false;
+                if(!set)
+                {
+                    prev_joystick_mode = RDC.getJoystickType();
+                    set = true;
+                }
+                RDC.setJoystickType(0);
+                lift.move(RDC.joystick_2.getY());
+
+                if(operator_joystick.getRawButton(4))
+                    lift.attach(true);
+                if(operator_joystick.getRawButton(6))
+                    lift.attach(false);
             }
+            else
+            {
+                lift.lock(true);
+                set = false;
+                if(!reset)
+                {
+                  RDC.setJoystickType(prev_joystick_mode);
+                  reset = true;
+                }
+            }
+
             /*if(operator_joystick.getRawButton(7) && operator_joystick.getY() > .8)
-                lift_motor.up();
+                lift.up();
             else if(operator_joystick.getRawButton(7) && operator_joystick.getY() < -.8)
-                lift_motor.down();
-            else lift_motor.stop()*/
+                lift.down();
+            else lift.stop()*/
 
             /*if(operator_joystick.getRawButton(9))
                 suction;*/
@@ -514,6 +520,23 @@ public class Robot1100 extends IterativeRobot
             }
         }
         catch(DriverStationEnhancedIO.EnhancedIOException e){}*/
+
+        /*  if (AxisCamera.getInstance().freshImage())
+            {
+                try
+                {
+                    System.out.println("image!");
+                    ColorImage image = AxisCamera.getInstance().getImage();
+                    Thread.yield();
+                    image.free();
+                }
+                catch (NIVisionException ex)
+                {
+                }
+                catch (AxisCameraException ex)
+                {
+                }
+            } */
     }
 
 

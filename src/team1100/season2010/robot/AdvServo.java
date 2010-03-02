@@ -29,7 +29,7 @@ public class AdvServo extends Servo
       super(slot,channel);
       servoSetpoint = .5;
       super.set(servoSetpoint);
-      increment = .005;
+      increment = .02;
       servo_max = .8;
       servo_min = .2;
   }

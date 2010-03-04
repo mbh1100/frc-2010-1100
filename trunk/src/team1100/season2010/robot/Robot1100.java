@@ -60,7 +60,7 @@ public class Robot1100 extends IterativeRobot
     int prev_count;
 
     //Camera camera;
-    
+
     //DriverStationEnhancedIO psoc;
 
     Kicker kicker;
@@ -76,7 +76,7 @@ public class Robot1100 extends IterativeRobot
 
     double lastTime;
     double currentTime = 0;
-    double maxDifference;
+    double maxDifference = 0;
 
 
     /**
@@ -86,7 +86,7 @@ public class Robot1100 extends IterativeRobot
     public void robotInit()
     {
 
-       //camera = new Camera();
+        //camera = new Camera();
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
         this.setPeriod(0.01);   //however, this appears to not actually have an effect (?)
         System.out.print("ROBOT STARTUP");  //and the period appears to be 50Hz according to Mark
@@ -98,7 +98,7 @@ public class Robot1100 extends IterativeRobot
 
         kicker = new Kicker();
 
-        //lift = new Lift(4(slot),8(channel));
+        lift = new Lift(4,8);
 
         Watchdog.getInstance().setEnabled(true);
 
@@ -158,7 +158,7 @@ public class Robot1100 extends IterativeRobot
         {
             DashboardPacker.updateDashboard();
 
-            
+
         }
 
         //Runs periodically at 10Hz.
@@ -294,9 +294,9 @@ public class Robot1100 extends IterativeRobot
     {
         m_count++;
 
-        Watchdog.getInstance().feed();
-        double pavlovsWatch = Watchdog.getInstance().getExpiration();
-        System.out.println(pavlovsWatch);
+        // Watchdog.getInstance().feed();
+        // double pavlovsWatch = Watchdog.getInstance().getExpiration();
+        // System.out.println(pavlovsWatch);
 
         //Runs periodically at 100Hz
         {
@@ -304,6 +304,7 @@ public class Robot1100 extends IterativeRobot
             currentTime = System.currentTimeMillis();
             double difference = currentTime - lastTime;
 
+            System.out.println("loop time = " + difference + "; max loop time: " + maxDifference);
             if ((difference >= maxDifference) && (difference <= 1234567890000.0))
             {
                 maxDifference = difference;
@@ -313,7 +314,7 @@ public class Robot1100 extends IterativeRobot
             {
                 System.out.println ("   slick!");
             }
-            
+
             lastTime = currentTime;
 
         }
@@ -423,15 +424,15 @@ public class Robot1100 extends IterativeRobot
 
             if(operator_joystick.getRawButton(1))
                 kicker.setHardSoft(true);
-            
+
             if(operator_joystick.getRawButton(3))
                 kicker.setHardSoft(false);
 
-         
+
             if(RDC.getDriveType() != 4)
               System.out.println(RDC.getPotVals());
-            System.out.println(RDC.getPWMVals());
-            System.out.println(RDC.getJoystickVals());
+              System.out.println(RDC.getPWMVals());
+              System.out.println(RDC.getJoystickVals());
 
 
             /*if(operator_joystick.getRawButton(7) && operator_joystick.getRawButton(4) && !freed)
@@ -615,7 +616,7 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 1/5 Hz.
         if (m_count % 500 == 0)
         {
-            
+
         }
     }
 }

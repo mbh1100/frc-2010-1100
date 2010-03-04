@@ -17,7 +17,7 @@ public class Lift
     private Victor lift_victor;
     private Solenoid lock_piston; //spike
     private Solenoid attach_piston;
-    private Solenoid attach_mount;
+    //private Solenoid attach_mount;
     private boolean inverted;
 
     public Lift()
@@ -28,9 +28,9 @@ public class Lift
     public Lift(int slot, int channel)
     {
        lift_victor = new Victor(slot,channel);
-       lock_piston = new Solenoid(7,8); //spike
-       attach_piston = new Solenoid(7,8);
-       attach_mount = new Solenoid(8,8);
+       lock_piston = new Solenoid(8,8);
+       attach_piston = new Solenoid(8,7);
+       //attach_mount = new Solenoid(8,8);
        inverted = false;
     }
 
@@ -54,22 +54,22 @@ public class Lift
     public void lock(boolean tf)
     {
         if(tf)
-            lock_piston.set(false); //spike
+            lock_piston.set(false); 
         else
-            lock_piston.set(true); //spike
+            lock_piston.set(true); 
     }
 
     public void attach(boolean tf)
     {
         if(tf)
         {
-            attach_mount.set(false);
+            //attach_mount.set(false);
             attach_piston.set(true);
         }
         else
         {
             attach_piston.set(false);
-            attach_mount.set(true);
+            //attach_mount.set(true);
         }
     }
 }

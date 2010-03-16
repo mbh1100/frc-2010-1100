@@ -107,22 +107,25 @@ public class Kicker
       {
         valve_2_B.set(false);
         valve_2_A.set(true);
-        //System.out.println("open latch");
+        System.out.println("open latch");
         prime_state++;
       }
       //ARM KICKER
       else if(prime_state == 1)
       {
-        valve_1_B.set(false);
-        valve_1_A.set(true);
-        //System.out.println("arm kicker");
-        prime_state++;
+        if(limit_switch.get())
+        {
+          valve_1_B.set(false);
+          valve_1_A.set(true);
+          System.out.println("arm kicker");
+          prime_state++;
+        }
       }
       else if(prime_state == 2)
       {
           if(!limit_switch.get())
           {
-            //System.out.println("kicker armed");
+            System.out.println("kicker armed");
             prime_state++;
           }
       }
@@ -133,13 +136,13 @@ public class Kicker
         valve_2_A.set(false);
         valve_2_B.set(true);
         prime_state++;
-        //System.out.println("lock latch");
+        System.out.println("lock latch");
       }
 
       //SET KICKER
       else if(prime_state == 4)
       {
-          //System.out.println("set kicker");
+          System.out.println("set kicker");
         if(hardKick)
         {
           valve_1_A.set(false);
@@ -154,7 +157,7 @@ public class Kicker
             valve_3_B.set(false);
             valve_3_A.set(true);
         }
-          //System.out.println("kicker set");
+          System.out.println("kicker set");
         primed = true;
         prime_state = 0;
       }
@@ -172,14 +175,14 @@ public class Kicker
     //System.out.println("KICK!" + curr_count);
     if(primed == true && curr_count - prev_count >= TIMING_DELAY)
     {
-        //System.out.println("kick!");
+        System.out.println("kick!");
         
         valve_2_B.set(false);
         valve_2_A.set(true);
 
         // going to state 1 repeats the valve setting, but
         // adds delay so we don't test the limit switch too soon.
-        prime_state = 1;
+        prime_state = 0;
  
         primed = false;
         prev_count = curr_count;

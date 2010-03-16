@@ -9,12 +9,12 @@ import edu.wpi.first.wpilibj.DigitalInput;
 
 public class RobotDriveController
 {
-    private int back_pot_max     = 633;
-    private int back_pot_center  = 560;
-    private int back_pot_min     = 481;
-    private int front_pot_max    = 956;
-    private int front_pot_center = 878;
-    private int front_pot_min    = 809;
+    private int back_pot_max     = 525;
+    private int back_pot_center  = 453;
+    private int back_pot_min     = 381;
+    private int front_pot_max    = 863;
+    private int front_pot_center = 789;
+    private int front_pot_min    = 714;
 
     private int drive_type;
     private int joystick_type;
@@ -85,9 +85,15 @@ public class RobotDriveController
         CRM_back = new ChainRotationMotor(CRM_back_channel, avgNum, pot_back_channel);
         CRM_front = new ChainRotationMotor(CRM_front_channel, avgNum, pot_front_channel);
 
-        CRM_back.setInvertedMotor(false);
-        CRM_front.setInvertedMotor(false);
+        CRM_back.setInvertedMotor(true);
+        CRM_front.setInvertedMotor(true);
         translationInit();
+
+        CRM_front.setMinSpeed(.156);
+        CRM_front.setPCoeff(.996); //Adjust this pcoeff w/ value from z-axis of joystick 2
+
+        CRM_back.setMinSpeed(.156);
+        CRM_back.setPCoeff(.996);  //Adjust this pcoeff w/ value from z-axis of joystick 1
 
         limit_front_max = new DigitalInput(4,12);
         limit_front_min = new DigitalInput(4,11);
@@ -348,7 +354,7 @@ public class RobotDriveController
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_front.setWheelDirection(joystick_adjust_X * joystick_1.getX());
+        CRM_front.setWheelDirection(-joystick_adjust_X * joystick_1.getX());
     }
 
     private void carDriveOneJoystick()
@@ -362,7 +368,7 @@ public class RobotDriveController
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_front.setWheelDirection(joystick_adjust_X * joystick_1.getX());
+        CRM_front.setWheelDirection(-joystick_adjust_X * joystick_1.getX());
     }
 
     private void swerveDrive()
@@ -509,12 +515,12 @@ public class RobotDriveController
     {
         //Z-Axis of joystick 1 controls the pCoeffs of the CRMs
         //Z-Axis of joystick 2 controls the minSpeed of the CRMs
-        System.out.println("\t\t\t\tPCOEFF: "+(joystick_1.getZ()+1)/2);
-        System.out.println("\t\t\t\tMINSPEED: " + (joystick_2.getZ()+1)/2);
-        CRM_back.setPCoeff((joystick_1.getZ()+1)/2);
+        System.out.println("\t\t\t\tPCOEFF FRONT: "+(joystick_1.getZ()+1)/2);
+        System.out.println("\t\t\t\tPCOEFF BACK: " + (joystick_2.getZ()+1)/2);
+        CRM_back.setPCoeff((joystick_2.getZ()+1)/2);
         CRM_front.setPCoeff((joystick_1.getZ()+1)/2);
-        CRM_back.setMinSpeed((joystick_2.getZ()+1)/2);
-        CRM_front.setMinSpeed((joystick_2.getZ()+1)/2);
+        //CRM_back.setMinSpeed((joystick_2.getZ()+1)/2);
+        //CRM_front.setMinSpeed((joystick_2.getZ()+1)/2);
 
         drive_motor_speed_setpoint.addNewValue(joystick_adjust_Y * joystick_1.getY());
 
@@ -540,14 +546,10 @@ public class RobotDriveController
         CRM_back.setPotMax(back_pot_max);
         CRM_back.setPotCenter(back_pot_center);
         CRM_back.setPotMin(back_pot_min);
-        CRM_back.setMinSpeed(.156);
-        CRM_back.setPCoeff(.996);  //Adjust this pcoeff w/ value from z-axis of joystick 1
 
         CRM_front.setPotCenter(front_pot_center);
         CRM_front.setPotMax(front_pot_max);
-        CRM_front.setPotMin(front_pot_min);
-        CRM_front.setMinSpeed(.156);
-        CRM_front.setPCoeff(.996); //Adjust this pcoeff w/ value from z-axis of joystick 2
+        CRM_front.setPotMin(front_pot_min);        
     }
 
     private void rotationInit()
@@ -555,14 +557,10 @@ public class RobotDriveController
         CRM_back.setPotMax((back_pot_max - back_pot_center)/2 + back_pot_center);
         CRM_back.setPotCenter(back_pot_center);
         CRM_back.setPotMin((back_pot_center - back_pot_min)/2 + back_pot_min);
-        CRM_back.setMinSpeed(.156);
-        CRM_back.setPCoeff(.996);  //make sure to adjust this one too!!!
 
         CRM_front.setPotMax((front_pot_max - front_pot_center)/2 + front_pot_center);
         CRM_front.setPotCenter(front_pot_center);
         CRM_front.setPotMin((front_pot_center - front_pot_min)/2 + front_pot_min);
-        CRM_front.setMinSpeed(.156);
-        CRM_front.setPCoeff(.996); //make sure to adjust this one to!!
     }
 
 }

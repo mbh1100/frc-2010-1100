@@ -74,9 +74,14 @@ public class Robot1100 extends IterativeRobot
     int autoState;
 
 
+    AdvJaguar roller = new AdvJaguar(4,7);
+
     double lastTime;
     double currentTime = 0;
     double maxDifference = 0;
+
+    //CAMERA
+    //AxisCamera camera;
 
 
     /**
@@ -85,11 +90,14 @@ public class Robot1100 extends IterativeRobot
      */
     public void robotInit()
     {
-
+        Watchdog.getInstance().setEnabled(true);
+        Watchdog.getInstance().feed();
         //camera = new Camera();
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
         this.setPeriod(0.01);   //however, this appears to not actually have an effect (?)
         System.out.print("ROBOT STARTUP");  //and the period appears to be 50Hz according to Mark
+
+        Watchdog.getInstance().feed();
 
         RDC = new RobotDriveController(0,joystick_1_channel,joystick_2_channel,
                 jag_FR_channel,jag_FL_channel,jag_BR_channel,jag_BL_channel,CRM_front_channel,CRM_back_channel,
@@ -98,10 +106,19 @@ public class Robot1100 extends IterativeRobot
 
         kicker = new Kicker();
 
+        Watchdog.getInstance().feed();
+
         lift = new Lift(4,8);
 
-        Watchdog.getInstance().setEnabled(true);
+        Watchdog.getInstance().feed();
 
+        //CAMERA
+        /*camera = AxisCamera.getInstance();
+        camera.writeRotation(AxisCamera.RotationT.k180);
+        camera.writeBrightness(0);
+        camera.writeResolution(AxisCamera.ResolutionT.k320x240);*/
+
+        Watchdog.getInstance().feed();
        // psoc = DriverStation.getInstance().getEnhancedIO();
     }
 
@@ -111,6 +128,7 @@ public class Robot1100 extends IterativeRobot
     public void autonomousInit()
     {
         m_count = 0;
+        Watchdog.getInstance().feed();
         prev_count = 0;
         System.out.println("Autonomous Init");
         kicker.turnOnKicker();
@@ -125,6 +143,7 @@ public class Robot1100 extends IterativeRobot
             autoState += 1;
         System.out.println("Delay: " + autoDelay);
         System.out.println("autoState " + autoState);
+        Watchdog.getInstance().feed();
     }
 
     /**
@@ -168,7 +187,7 @@ public class Robot1100 extends IterativeRobot
         }
 
         //Runs periodically at 5Hz.
-        /*if (m_count % 20 == 0)
+        if (m_count % 20 == 0)
         {
            kicker.primeKicker();
         }
@@ -176,90 +195,120 @@ public class Robot1100 extends IterativeRobot
         if(m_count < autoDelay + 5)
             RDC.driveAutonomous(1, 0);
 
-        if(m_count > autoDelay + 5 && m_count < autoDelay + 45) //wait 60
+        Watchdog.getInstance().feed();
+
+        if(m_count > autoDelay + 5 && m_count < autoDelay + 65)
+        {
             RDC.driveAutonomous(1, .3);
-        if(m_count > autoDelay + 45 && m_count < autoDelay + 110)
+            roller.set(-1);
+        }
+        if(m_count > autoDelay + 65 && m_count < autoDelay + 130)
             RDC.driveAutonomous(1, 0);
-        if(m_count == autoDelay + 110)
+        if(m_count == autoDelay + 130)
         {
             kicker.kick(m_count);
+            roller.set(0);
             System.out.println("KICK.");
         }
 
+        Watchdog.getInstance().feed();
+
         if(autoState == 1 || autoState == 2 || autoState == 5 || autoState == 6 || autoState == 7)
         {
-            if(m_count > autoDelay + 130 && m_count < autoDelay + 205)
+            if(m_count > autoDelay + 150 && m_count < autoDelay + 225)
+            {
                 RDC.driveAutonomous(1, .3);
-            if(m_count > autoDelay + 205 && m_count < autoDelay + 310)
+                roller.set(-1);
+            }
+            if(m_count > autoDelay + 225 && m_count < autoDelay + 330)
                 RDC.driveAutonomous(1, 0);
-            if(m_count == autoDelay + 311)
+            if(m_count == autoDelay + 331)
             {
                 kicker.kick(m_count);
+                roller.set(0);
                 System.out.println("KICK.");
             }
         }
+
+        Watchdog.getInstance().feed();
 
         if(autoState == 2 || autoState == 7)
         {
-            if(m_count > autoDelay + 312 && m_count < autoDelay + 377)
+            if(m_count > autoDelay + 332 && m_count < autoDelay + 397)
+            {
                 RDC.driveAutonomous(1, .3);
-            if(m_count > autoDelay + 377 && m_count < autoDelay + 511 )
+                roller.set(-1);
+            }
+            if(m_count > autoDelay + 397 && m_count < autoDelay + 531 )
                 RDC.driveAutonomous(1, 0);
-            if(m_count == autoDelay + 512)
+            if(m_count == autoDelay + 532)
             {
                 kicker.kick(m_count);
+                roller.set(0);
                 System.out.println("KICK.");
             }
         }
 
+        Watchdog.getInstance().feed();
+
         if(autoState == 3)
         {
-            if(m_count > autoDelay + 111 && m_count < autoDelay + 171)
+            if(m_count > autoDelay + 131 && m_count < autoDelay + 191)
               RDC.driveAutonomous(2, 0);
-            if(m_count > autoDelay + 171 && m_count < autoDelay + 221)
+            if(m_count > autoDelay + 191 && m_count < autoDelay + 241)
               RDC.driveAutonomous(2, .3);
-            if(m_count > autoDelay + 221 && m_count < autoDelay + 321)
+            if(m_count > autoDelay + 241 && m_count < autoDelay + 341)
               RDC.driveAutonomous(1,0);
         }
+
+        Watchdog.getInstance().feed();
 
         if(autoState == 5)
         {
-            if(m_count > autoDelay + 311 && m_count < autoDelay + 371)
+            if(m_count > autoDelay + 331 && m_count < autoDelay + 391)
               RDC.driveAutonomous(2, 0);
-            if(m_count > autoDelay + 371 && m_count < autoDelay + 421)
+            if(m_count > autoDelay + 391 && m_count < autoDelay + 441)
               RDC.driveAutonomous(2, .3);
-            if(m_count > autoDelay + 421 && m_count < autoDelay + 521)
+            if(m_count > autoDelay + 441 && m_count < autoDelay + 541)
               RDC.driveAutonomous(1,0);
         }
+
+        Watchdog.getInstance().feed();
 
         if(autoState == 4)
         {
-            if(m_count > autoDelay + 111 && m_count < autoDelay + 171)
+            if(m_count > autoDelay + 131 && m_count < autoDelay + 191)
               RDC.driveAutonomous(2, 0);
-            if(m_count > autoDelay + 171 && m_count < autoDelay + 221)
+            if(m_count > autoDelay + 191 && m_count < autoDelay + 241)
               RDC.driveAutonomous(2, -.3);
-            if(m_count > autoDelay + 221 && m_count < autoDelay + 321)
+            if(m_count > autoDelay + 241 && m_count < autoDelay + 341)
               RDC.driveAutonomous(1,0);
         }
+
+        Watchdog.getInstance().feed();
 
         if(autoState == 6)
         {
-            if(m_count > autoDelay + 311 && m_count < autoDelay + 371)
+            if(m_count > autoDelay + 331 && m_count < autoDelay + 391)
               RDC.driveAutonomous(2, 0);
-            if(m_count > autoDelay + 371 && m_count < autoDelay + 421)
+            if(m_count > autoDelay + 391 && m_count < autoDelay + 441)
               RDC.driveAutonomous(2, -.3);
-            if(m_count > autoDelay + 421 && m_count < autoDelay + 521)
+            if(m_count > autoDelay + 441 && m_count < autoDelay + 541)
               RDC.driveAutonomous(1,0);
         }
 
+        Watchdog.getInstance().feed();
+
         if(autoState == 7)
         {
-            if(m_count > 512 && m_count < 600)
+            if(m_count > 532 && m_count < 620)
                 RDC.driveAutonomous(1,.3);
-            if(m_count > 600 && m_count < 660)
+            if(m_count > 620 && m_count < 680)
                 RDC.driveAutonomous(1,0);
         }
-        */
+
+        Watchdog.getInstance().feed();
+
 
         //System.out.println("pot val : " + aut_delay_pot.getAverageValue());
         System.out.println("switch 1: " + aut_switch_1.get());
@@ -283,8 +332,10 @@ public class Robot1100 extends IterativeRobot
     public void teleopInit()
     {
         m_count = 0;
+        Watchdog.getInstance().feed();
         System.out.println("TeleOp Initialized.");
         kicker.turnOnKicker();
+        Watchdog.getInstance().feed();
     }
 
     /**
@@ -293,8 +344,7 @@ public class Robot1100 extends IterativeRobot
     public void teleopPeriodic()
     {
         m_count++;
-
-        // Watchdog.getInstance().feed();
+        Watchdog.getInstance().feed();
         // double pavlovsWatch = Watchdog.getInstance().getExpiration();
         // System.out.println(pavlovsWatch);
 
@@ -304,15 +354,15 @@ public class Robot1100 extends IterativeRobot
             currentTime = System.currentTimeMillis();
             double difference = currentTime - lastTime;
 
-            System.out.println("loop time = " + difference + "; max loop time: " + maxDifference);
+            //System.out.println("loop time = " + difference + "; max loop time: " + maxDifference);
             if ((difference >= maxDifference) && (difference <= 1234567890000.0))
             {
                 maxDifference = difference;
-                System.out.println("                                Too long " + maxDifference);
+                //System.out.println("                                Too long " + maxDifference);
             }
             else
             {
-                System.out.println ("   slick!");
+                //System.out.println ("   slick!");
             }
 
             lastTime = currentTime;
@@ -335,6 +385,8 @@ public class Robot1100 extends IterativeRobot
         if (m_count % 5 == 0)
         {
             DashboardPacker.updateDashboard();
+
+            Watchdog.getInstance().feed();
 
             /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Tank
                 RDC.setDriveType(0);*/
@@ -360,6 +412,9 @@ public class Robot1100 extends IterativeRobot
                 catch(DriverStationEnhancedIO.EnhancedIOException e){} */
                 RDC.setDriveType(2);
             }
+
+            Watchdog.getInstance().feed();
+
             if(RDC.joystick_2.getTrigger() && RDC.joystick_2.getRawButton(2)) //Diagnostic
                 RDC.setDriveType(4);
             if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Swerve Rotation
@@ -379,11 +434,12 @@ public class Robot1100 extends IterativeRobot
                 if(RDC.joystick_2.getRawButton(4) && RDC.joystick_2.getRawButton(5))
                 {
                     RDC.setDriveType(6);
-                    kicker.turnOnKicker();
                 }
-            if(RDC.joystick_2.getRawButton(9)&&RDC.joystick_2.getRawButton(8))
+            if(RDC.joystick_2.getRawButton(9)&&RDC.joystick_2.getRawButton(8)) //diagnostic pcoeffs
                 if(RDC.joystick_2.getTrigger())
                     RDC.setDriveType(7);
+
+            Watchdog.getInstance().feed();
 
             if(RDC.joystick_2.getRawButton(6) && m_count - prev_count > 30)
             {
@@ -396,6 +452,8 @@ public class Robot1100 extends IterativeRobot
                 prev_count = m_count;
             }
 
+            Watchdog.getInstance().feed();
+
             if(RDC.joystick_1.getRawButton(4) && m_count - prev_count > 30)
             {
                 RDC.change90Mode();
@@ -406,6 +464,8 @@ public class Robot1100 extends IterativeRobot
                 RDC.change45Mode();
                 prev_count = m_count;
             }*/
+
+            Watchdog.getInstance().feed();
 
             if(RDC.joystick_1.getRawButton(3) && m_count - prev_count > 30)
             {
@@ -418,6 +478,7 @@ public class Robot1100 extends IterativeRobot
                 prev_count = m_count;
             }
 
+
             Watchdog.getInstance().feed();
 
             RDC.drive();
@@ -429,11 +490,14 @@ public class Robot1100 extends IterativeRobot
                 kicker.setHardSoft(false);
 
 
+            Watchdog.getInstance().feed();
+
             if(RDC.getDriveType() != 4)
+            {
               System.out.println(RDC.getPotVals());
               System.out.println(RDC.getPWMVals());
               System.out.println(RDC.getJoystickVals());
-
+            }
 
             /*if(operator_joystick.getRawButton(7) && operator_joystick.getRawButton(4) && !freed)
                 servo_lift.set(true);  //true = "forward"
@@ -445,9 +509,12 @@ public class Robot1100 extends IterativeRobot
                 freed = true;
             }*/
 
+            Watchdog.getInstance().feed();
+
             if(operator_joystick.getRawButton(7))
             {
                 lift.lock(false);
+                System.out.println("unlocked");
                 reset = false;
                 if(!set)
                 {
@@ -455,16 +522,24 @@ public class Robot1100 extends IterativeRobot
                     set = true;
                 }
                 RDC.setJoystickType(0);
-                lift.move(RDC.joystick_2.getY());
+                lift.move(-RDC.joystick_2.getY());
 
                 if(operator_joystick.getRawButton(4))
+                {
                     lift.attach(true);
+                    System.out.println("attach");
+                }
                 if(operator_joystick.getRawButton(6))
+                {
                     lift.attach(false);
+                    System.out.println("un attach");
+                }
             }
             else
             {
                 lift.lock(true);
+                System.out.println("locked");
+                lift.move(0);
                 set = false;
                 if(!reset)
                 {
@@ -479,8 +554,12 @@ public class Robot1100 extends IterativeRobot
                 lift.down();
             else lift.stop()*/
 
-            /*if(operator_joystick.getRawButton(9))
-                suction;*/
+            Watchdog.getInstance().feed();
+
+            if(operator_joystick.getRawButton(5))
+                roller.set(-1);
+            else roller.set(0);
+
 
             Watchdog.getInstance().feed();
         }
@@ -498,11 +577,14 @@ public class Robot1100 extends IterativeRobot
 
         }
 
-        if(m_count % 15 == 0)
+        if(m_count % 20 == 0)
         {
             //if(RDC.joystick_1.getTrigger() && RDC.joystick_2.getTrigger()) // priming kicker test!!! remove 'if' for competition
                 kicker.primeKicker();
-                System.out.println("priming for kick");//added by alex to test on saturday
+                //System.out.println("priming for kick");//added by alex to test on saturday
+
+                Watchdog.getInstance().feed();
+
             if(operator_joystick.getRawButton(8))
                 kicker.kick(m_count);
         }
@@ -565,6 +647,7 @@ public class Robot1100 extends IterativeRobot
     public void disabledInit()
     {
         m_count = 0;
+        Watchdog.getInstance().feed();
         kicker.disarm();
     }
 

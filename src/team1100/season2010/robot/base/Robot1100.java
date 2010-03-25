@@ -50,13 +50,16 @@ public class Robot1100 extends IterativeRobot
 
     RobotDriveController RDC;
 
+   // SteeringPID testpid;
 
     AdvServo servo_lift = new AdvServo(4, 10);     // Instatntiating servo_lift
     boolean freed = false;
     int prev_joystick_mode = 0;
     boolean set = false;
     boolean reset = true;
-    Lift lift;
+
+    boolean arm_button_pressed = false;
+    HookLift lift;
 
     int prev_count;
 
@@ -107,17 +110,20 @@ public class Robot1100 extends IterativeRobot
 
         kicker = new Kicker();
 
+       // testpid = new SteeringPID(2, 1, 6, 1, true);
+       // testpid.setLinearPct(10.0);
+
         Watchdog.getInstance().feed();
 
-        lift = new Lift(4,8);
+        lift = new HookLift(4,8);
 
         Watchdog.getInstance().feed();
 
         //CAMERA
-        camera = AxisCamera.getInstance();
-        camera.writeRotation(AxisCamera.RotationT.k180);
-        camera.writeBrightness(0);
-        camera.writeResolution(AxisCamera.ResolutionT.k320x240);
+        //camera = AxisCamera.getInstance();
+        //camera.writeRotation(AxisCamera.RotationT.k180);
+       // camera.writeBrightness(0);
+       // camera.writeResolution(AxisCamera.ResolutionT.k320x240);
 
         Watchdog.getInstance().feed();
        // psoc = DriverStation.getInstance().getEnhancedIO();
@@ -355,11 +361,11 @@ public class Robot1100 extends IterativeRobot
             currentTime = System.currentTimeMillis();
             double difference = currentTime - lastTime;
 
-            System.out.println("loop time = " + difference + "; max loop time: " + maxDifference);
+            //System.out.println("loop time = " + difference + "; max loop time: " + maxDifference);
             if ((difference >= maxDifference) && (difference <= 1234567890000.0))
             {
                 maxDifference = difference;
-                System.out.println("                                Too long " + maxDifference);
+//                System.out.println("                                Too long " + maxDifference);
             }
             else
             {
@@ -385,13 +391,19 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 20Hz.
         if (m_count % 5 == 0)
         {
+            /**
+             *    Joystick Code
+             */
+           
            // DashboardPacker.updateDashboard();
 
             Watchdog.getInstance().feed();
 
             /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Tank
                 RDC.setDriveType(0);*/
-            if(RDC.joystick_1.getRawButton(8)||RDC.joystick_1.getRawButton(9))//Car
+
+            // Car mode button
+            if(RDC.joystick_1.getRawButton(8)||RDC.joystick_1.getRawButton(9))
             {
                // turnOffLEDs();
                 RDC.setDriveType(1);
@@ -402,6 +414,8 @@ public class Robot1100 extends IterativeRobot
                 }
                 catch(DriverStationEnhancedIO.EnhancedIOException e){}*/
             }
+
+            // Swerve mode button
             if(RDC.joystick_1.getRawButton(10)||RDC.joystick_1.getRawButton(11))//Swerve
             {
                /* turnOffLEDs();
@@ -416,8 +430,11 @@ public class Robot1100 extends IterativeRobot
 
             Watchdog.getInstance().feed();
 
+            // Diagnostic mode button
             if(RDC.joystick_2.getTrigger() && RDC.joystick_2.getRawButton(2)) //Diagnostic
                 RDC.setDriveType(4);
+
+            // Swerve Rotation button
             if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Swerve Rotation
             {
                /* turnOffLEDs();
@@ -429,6 +446,7 @@ public class Robot1100 extends IterativeRobot
                 catch(DriverStationEnhancedIO.EnhancedIOException e){} */
                 RDC.setDriveType(3);
             }
+
             if(RDC.joystick_1.getTrigger() && RDC.joystick_1.getRawButton(5)) //Diagnostic limit switches
                 RDC.setDriveType(5);
             if(RDC.joystick_2.getRawButton(10) && RDC.joystick_2.getRawButton(11))  //Diagnostic pit setup
@@ -455,6 +473,7 @@ public class Robot1100 extends IterativeRobot
 
             Watchdog.getInstance().feed();
 
+            // 90 degree mode button
             if(RDC.joystick_1.getRawButton(4) && m_count - prev_count > 30)
             {
                 RDC.change90Mode();
@@ -512,6 +531,47 @@ public class Robot1100 extends IterativeRobot
 
             Watchdog.getInstance().feed();
 
+            //lift.moveWinch(-RDC.joystick_2.getY());  // TEST CODE FOR FLIP WINCH
+            
+            /*
+             *  Operator Joystick Buttons for lift:
+             *  4 - drop arm, then deploy hook when released
+             *  6 - lift hook
+             *  7 - safety
+             */
+            
+            if(operator_joystick.getRawButton(7))
+            {
+                // If drop button pushed
+                if(operator_joystick.getRawButton(4))
+                {
+                    if(!lift.isArmDropped())
+                    {
+                        lift.dropArm();
+                        arm_button_pressed = true;
+                    }
+                } else {
+                    // When drop button is released, activate latch
+                    if(arm_button_pressed)
+                    {
+                        lift.dropHook();
+                        arm_button_pressed = false;
+                    }
+                }
+
+                // Manual Hook Control
+                // Used for after the hook automaticly latchs
+                if(operator_joystick.getRawButton(6))
+                {
+                    lift.liftHook();
+                }
+                else if(operator_joystick.getRawButton(4) && !arm_button_pressed && lift.isHookDropped())
+                {
+                    lift.dropHook();
+                }
+            }
+
+            /*ORIGINAL CODE FOR LIFT WINCH
             if(operator_joystick.getRawButton(7))
             {
                 lift.lock(false);
@@ -548,7 +608,7 @@ public class Robot1100 extends IterativeRobot
                   reset = true;
                 }
             }
-
+*/
             /*if(operator_joystick.getRawButton(7) && operator_joystick.getY() > .8)
                 lift.up();
             else if(operator_joystick.getRawButton(7) && operator_joystick.getY() < -.8)
@@ -568,7 +628,7 @@ public class Robot1100 extends IterativeRobot
         //Runs periodically at 10Hz.
         if (m_count % 10 == 0)
         {
-
+            // testpid.setDirection(RDC.joystick_1.getX());
         }
 
         //Runs periodically at 5Hz.

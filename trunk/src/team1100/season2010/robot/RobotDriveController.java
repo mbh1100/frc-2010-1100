@@ -9,11 +9,11 @@ import edu.wpi.first.wpilibj.DigitalInput;
 
 public class RobotDriveController
 {
-    private int back_pot_max     = 525;
-    private int back_pot_center  = 453;
-    private int back_pot_min     = 381;
-    private int front_pot_max    = 863;
-    private int front_pot_center = 789;
+    private int back_pot_max     = 461;
+    private int back_pot_center  = 391;
+    private int back_pot_min     = 318;
+    private int front_pot_max    = 862;
+    private int front_pot_center = 790;
     private int front_pot_min    = 714;
 
     private int drive_type;
@@ -89,11 +89,11 @@ public class RobotDriveController
         CRM_front.setInvertedMotor(true);
         translationInit();
 
-        CRM_front.setMinSpeed(.156);
-        CRM_front.setPCoeff(.996); //Adjust this pcoeff w/ value from z-axis of joystick 2
+        CRM_front.setMinSpeed(.25);//.156
+        CRM_front.setPCoeff(1); //Adjust this pcoeff w/ value from z-axis of joystick 2
 
-        CRM_back.setMinSpeed(.156);
-        CRM_back.setPCoeff(.996);  //Adjust this pcoeff w/ value from z-axis of joystick 1
+        CRM_back.setMinSpeed(.25);//used to be .156
+        CRM_back.setPCoeff(1);  //Adjust this pcoeff w/ value from z-axis of joystick 1
 
         limit_front_max = new DigitalInput(4,12);
         limit_front_min = new DigitalInput(4,11);

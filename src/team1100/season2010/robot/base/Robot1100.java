@@ -87,6 +87,10 @@ public class Robot1100 extends IterativeRobot
     //CAMERA
     AxisCamera camera;
 
+    Relay spike;
+
+
+    boolean isthrown = false;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -106,7 +110,7 @@ public class Robot1100 extends IterativeRobot
         RDC = new RobotDriveController(0,joystick_1_channel,joystick_2_channel,
                 jag_FR_channel,jag_FL_channel,jag_BR_channel,jag_BL_channel,CRM_front_channel,CRM_back_channel,
                 POT_front_CHANNEL_VAL, POT_back_CHANNEL_VAL,4);
-        RDC.setInvertedMotor(true,false,true,false);  //front r, front l, back r, back l
+        RDC.setInvertedMotor(true,false,false,true);  //front r, front l, back r, back l
 
         kicker = new Kicker();
 
@@ -120,13 +124,16 @@ public class Robot1100 extends IterativeRobot
         Watchdog.getInstance().feed();
 
         //CAMERA
-        //camera = AxisCamera.getInstance();
-        //camera.writeRotation(AxisCamera.RotationT.k180);
-       // camera.writeBrightness(0);
-       // camera.writeResolution(AxisCamera.ResolutionT.k320x240);
+        // camera = AxisCamera.getInstance();
+        // camera.writeRotation(AxisCamera.RotationT.k0);
+        // camera.writeBrightness(0);
+        // camera.writeResolution(AxisCamera.ResolutionT.k320x240);
 
         Watchdog.getInstance().feed();
        // psoc = DriverStation.getInstance().getEnhancedIO();
+
+        spike = new Relay(4,6);
+        spike.setDirection(Relay.Direction.kForward);
     }
 
     /**
@@ -142,12 +149,24 @@ public class Robot1100 extends IterativeRobot
         RDC.setDriveType(2);
         autoDelay = aut_delay_pot.getAverageValue()/2 + 50;
         autoState = 0;
-        if(aut_switch_1.get())
+        // initialize the lift state in case the robot hasn't been
+        // rebooted since teleop.
+        lift.raiseArm();
+        lift.liftHook();
+
+        if(DriverStation.getInstance().getDigitalIn(1))
+            autoState += 4;
+        if(DriverStation.getInstance().getDigitalIn(2))
+            autoState += 2;
+        if(DriverStation.getInstance().getDigitalIn(3))
+            autoState++;
+
+        /*if(aut_switch_1.get())
             autoState += 4;
         if(aut_switch_2.get())
             autoState += 2;
         if(aut_switch_3.get())
-            autoState += 1;
+            autoState += 1;*/
         System.out.println("Delay: " + autoDelay);
         System.out.println("autoState " + autoState);
         Watchdog.getInstance().feed();
@@ -204,14 +223,14 @@ public class Robot1100 extends IterativeRobot
 
         Watchdog.getInstance().feed();
 
-        if(m_count > autoDelay + 5 && m_count < autoDelay + 65)
+        /*if(m_count > autoDelay + 5 && m_count < autoDelay + 85)
         {
-            RDC.driveAutonomous(1, .3);
+            RDC.driveAutonomous(1, .2);
             roller.set(-1);
         }
-        if(m_count > autoDelay + 65 && m_count < autoDelay + 130)
+        if(m_count > autoDelay + 85 && m_count < autoDelay + 150)
             RDC.driveAutonomous(1, 0);
-        if(m_count == autoDelay + 130)
+        if(m_count == autoDelay + 150)
         {
             kicker.kick(m_count);
             roller.set(0);
@@ -222,14 +241,14 @@ public class Robot1100 extends IterativeRobot
 
         if(autoState == 1 || autoState == 2 || autoState == 5 || autoState == 6 || autoState == 7)
         {
-            if(m_count > autoDelay + 150 && m_count < autoDelay + 225)
+            if(m_count > autoDelay + 170 && m_count < autoDelay + 265)
             {
-                RDC.driveAutonomous(1, .3);
+                RDC.driveAutonomous(1, .2);
                 roller.set(-1);
             }
-            if(m_count > autoDelay + 225 && m_count < autoDelay + 330)
+            if(m_count > autoDelay + 265 && m_count < autoDelay + 370)
                 RDC.driveAutonomous(1, 0);
-            if(m_count == autoDelay + 331)
+            if(m_count == autoDelay + 371)
             {
                 kicker.kick(m_count);
                 roller.set(0);
@@ -241,14 +260,14 @@ public class Robot1100 extends IterativeRobot
 
         if(autoState == 2 || autoState == 7)
         {
-            if(m_count > autoDelay + 332 && m_count < autoDelay + 397)
+            if(m_count > autoDelay + 372 && m_count < autoDelay + 457)
             {
-                RDC.driveAutonomous(1, .3);
+                RDC.driveAutonomous(1, .2);
                 roller.set(-1);
             }
-            if(m_count > autoDelay + 397 && m_count < autoDelay + 531 )
+            if(m_count > autoDelay + 457 && m_count < autoDelay + 591 )
                 RDC.driveAutonomous(1, 0);
-            if(m_count == autoDelay + 532)
+            if(m_count == autoDelay + 592)
             {
                 kicker.kick(m_count);
                 roller.set(0);
@@ -260,11 +279,11 @@ public class Robot1100 extends IterativeRobot
 
         if(autoState == 3)
         {
-            if(m_count > autoDelay + 131 && m_count < autoDelay + 191)
+            if(m_count > autoDelay + 151 && m_count < autoDelay + 211)
               RDC.driveAutonomous(2, 0);
-            if(m_count > autoDelay + 191 && m_count < autoDelay + 241)
-              RDC.driveAutonomous(2, .3);
-            if(m_count > autoDelay + 241 && m_count < autoDelay + 341)
+            if(m_count > autoDelay + 211 && m_count < autoDelay + 281)
+              RDC.driveAutonomous(2, .2);
+            if(m_count > autoDelay + 281 && m_count < autoDelay + 381)
               RDC.driveAutonomous(1,0);
         }
 
@@ -272,11 +291,11 @@ public class Robot1100 extends IterativeRobot
 
         if(autoState == 5)
         {
-            if(m_count > autoDelay + 331 && m_count < autoDelay + 391)
+            if(m_count > autoDelay + 372 && m_count < autoDelay + 431)
               RDC.driveAutonomous(2, 0);
-            if(m_count > autoDelay + 391 && m_count < autoDelay + 441)
-              RDC.driveAutonomous(2, .3);
-            if(m_count > autoDelay + 441 && m_count < autoDelay + 541)
+            if(m_count > autoDelay + 431 && m_count < autoDelay + 501)
+              RDC.driveAutonomous(2, .2);
+            if(m_count > autoDelay + 501 && m_count < autoDelay + 601)
               RDC.driveAutonomous(1,0);
         }
 
@@ -284,11 +303,11 @@ public class Robot1100 extends IterativeRobot
 
         if(autoState == 4)
         {
-            if(m_count > autoDelay + 131 && m_count < autoDelay + 191)
+            if(m_count > autoDelay + 151 && m_count < autoDelay + 211)
               RDC.driveAutonomous(2, 0);
-            if(m_count > autoDelay + 191 && m_count < autoDelay + 241)
-              RDC.driveAutonomous(2, -.3);
-            if(m_count > autoDelay + 241 && m_count < autoDelay + 341)
+            if(m_count > autoDelay + 211 && m_count < autoDelay + 281)
+              RDC.driveAutonomous(2, -.2);
+            if(m_count > autoDelay + 281 && m_count < autoDelay + 381)
               RDC.driveAutonomous(1,0);
         }
 
@@ -296,11 +315,11 @@ public class Robot1100 extends IterativeRobot
 
         if(autoState == 6)
         {
-            if(m_count > autoDelay + 331 && m_count < autoDelay + 391)
+            if(m_count > autoDelay + 371 && m_count < autoDelay + 431)
               RDC.driveAutonomous(2, 0);
-            if(m_count > autoDelay + 391 && m_count < autoDelay + 441)
-              RDC.driveAutonomous(2, -.3);
-            if(m_count > autoDelay + 441 && m_count < autoDelay + 541)
+            if(m_count > autoDelay + 431 && m_count < autoDelay + 501)
+              RDC.driveAutonomous(2, -.2);
+            if(m_count > autoDelay + 501 && m_count < autoDelay + 601)
               RDC.driveAutonomous(1,0);
         }
 
@@ -308,12 +327,11 @@ public class Robot1100 extends IterativeRobot
 
         if(autoState == 7)
         {
-            if(m_count > 532 && m_count < 620)
-                RDC.driveAutonomous(1,.3);
-            if(m_count > 620 && m_count < 680)
+            if(m_count > 592 && m_count < 770)
+                RDC.driveAutonomous(1,.2);
+            if(m_count > 770 && m_count < 800)
                 RDC.driveAutonomous(1,0);
         }
-
         Watchdog.getInstance().feed();
         
 
@@ -321,14 +339,20 @@ public class Robot1100 extends IterativeRobot
         System.out.println("switch 1: " + aut_switch_1.get());
         System.out.println("switch 2: " + aut_switch_2.get());
         System.out.println("switch_3: " + aut_switch_3.get() + "\n\n");
-        autoState = 0;
-        if(aut_switch_1.get())
+        int testState = 0;
+        if(DriverStation.getInstance().getDigitalIn(1))
+            testState += 4;
+        if(DriverStation.getInstance().getDigitalIn(2))
+            testState += 2;
+        if(DriverStation.getInstance().getDigitalIn(3))
+            testState++;
+        /*if(aut_switch_1.get())
             autoState += 4;
         if(aut_switch_2.get())
             autoState += 2;
         if(aut_switch_3.get())
-            autoState += 1;
-        System.out.println("AUTOSTATE: " + autoState);
+            autoState += 1;*/
+        //67System.out.println("AUTOSTATE: " + testState);
     }
 
 
@@ -394,6 +418,17 @@ public class Robot1100 extends IterativeRobot
             /**
              *    Joystick Code
              */
+
+
+
+            if(operator_joystick.getRawButton(5))
+            {
+                spike.set(Relay.Value.kOn);
+            }
+            else
+            {
+                spike.set(Relay.Value.kOff);
+            }
            
            // DashboardPacker.updateDashboard();
 
@@ -531,16 +566,17 @@ public class Robot1100 extends IterativeRobot
 
             Watchdog.getInstance().feed();
 
-            //lift.moveWinch(-RDC.joystick_2.getY());  // TEST CODE FOR FLIP WINCH
-            
             /*
              *  Operator Joystick Buttons for lift:
              *  4 - drop arm, then deploy hook when released
              *  6 - lift hook
-             *  7 - safety
+             *  7++- - safety
+             *  Joystick 2 Y controls the winch
              */
+
+            // CODE HAS NOT BEEN TESTED YET!!!
             
-            if(operator_joystick.getRawButton(7))
+          /*  if(operator_joystick.getRawButton(7))
             {
                 // If drop button pushed
                 if(operator_joystick.getRawButton(4))
@@ -550,7 +586,9 @@ public class Robot1100 extends IterativeRobot
                         lift.dropArm();
                         arm_button_pressed = true;
                     }
-                } else {
+                } 
+                else
+                {
                     // When drop button is released, activate latch
                     if(arm_button_pressed)
                     {
@@ -558,8 +596,9 @@ public class Robot1100 extends IterativeRobot
                         arm_button_pressed = false;
                     }
                 }
-
-                // Manual Hook Control
+                
+                
+               // Manual Hook Control
                 // Used for after the hook automaticly latchs
                 if(operator_joystick.getRawButton(6))
                 {
@@ -569,8 +608,53 @@ public class Robot1100 extends IterativeRobot
                 {
                     lift.dropHook();
                 }
-            }
 
+                if(lift.isArmDropped())
+                {
+                   lift.moveWinch(-RDC.joystick_2.getY());
+                }
+            }
+            else
+            {
+                 lift.stopWinch();
+            }
+          */
+
+            //THIS ALSO IS NOT TESTED
+
+            if (operator_joystick.getRawButton(7))
+            {
+                if (operator_joystick.getRawButton(2))
+                {
+                    isthrown = true;
+                    lift.dropArm();
+                }
+
+               boolean trythrow = operator_joystick.getRawButton(2);
+
+               if (isthrown && !trythrow)
+               {
+                   lift.raiseArm();
+                                }
+
+               if (operator_joystick.getRawButton(4))
+               {
+                   lift.dropHook();
+               }
+
+               if (operator_joystick.getRawButton(6))
+               {
+                   lift.liftHook();
+               }
+
+               RDC.setJoystickType(0);
+               lift.moveWinch(-RDC.joystick_2.getY());
+            }
+            else
+            {
+                lift.moveWinch(0);
+            }
+            
             /*ORIGINAL CODE FOR LIFT WINCH
             if(operator_joystick.getRawButton(7))
             {
@@ -614,13 +698,6 @@ public class Robot1100 extends IterativeRobot
             else if(operator_joystick.getRawButton(7) && operator_joystick.getY() < -.8)
                 lift.down();
             else lift.stop()*/
-
-            Watchdog.getInstance().feed();
-
-            if(operator_joystick.getRawButton(5))
-                roller.set(-1);
-            else roller.set(0);
-
 
             Watchdog.getInstance().feed();
         }

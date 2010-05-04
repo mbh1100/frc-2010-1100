@@ -91,9 +91,9 @@ public class SteeringPID {
     {
        m_linearPct = pct/100;
        // initially compute P so the motor input is linear over the whole input range
-       m_PidP = (kOutChannelMax - kOutChannelMin)/(kInChannelMax - kInChannelMin);
+       m_PidP = (kOutChannelMax - kOutChannelMin)/(m_operatingRange);
        // increase P so the motor input reaches its limit at m_linearPct/2 from the center
-       m_PidP /= m_linearPct;
+       m_PidP /= (pct/m_opRangePct);
        // update the PIDController
        m_pid.setPID(m_PidP, m_PidI, m_PidD);
     }
@@ -158,8 +158,8 @@ public class SteeringPID {
             m_running = true;
         }
 
-        /*
-           /  System.out.println("PID Error: " + m_pid.getError() +
+        
+         /*    System.out.println("PID Error: " + m_pid.getError() +
                     "; Result: " + m_pid.get() +
                     "; Setpoint: "  + m_pid.getSetpoint() +
                     "; Joystick: " + direction +
@@ -169,7 +169,7 @@ public class SteeringPID {
                     "; D: " + m_pid.getD() +
                     "; width: " + m_operatingRange +
                     "; center: " + m_rangeCenter);
-         *
+         
          */
 
     }

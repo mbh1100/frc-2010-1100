@@ -57,6 +57,8 @@ public class Robot1100 extends IterativeRobot
     int prev_joystick_mode = 0;
     boolean set = false;
     boolean reset = true;
+    boolean suctionControlPushed = false;
+    boolean suctionOn = false;
 
     boolean arm_button_pressed = false;
     HookLift lift;
@@ -153,6 +155,7 @@ public class Robot1100 extends IterativeRobot
         // rebooted since teleop.
         lift.raiseArm();
         lift.liftHook();
+        RDC.setSteeringCenter();
 
         if(DriverStation.getInstance().getDigitalIn(1))
             autoState += 4;
@@ -367,6 +370,7 @@ public class Robot1100 extends IterativeRobot
         System.out.println("TeleOp Initialized.");
         kicker.turnOnKicker();
         Watchdog.getInstance().feed();
+        RDC.setSteeringCenter();
     }
 
     /**
@@ -421,17 +425,30 @@ public class Robot1100 extends IterativeRobot
 
 
 
-            if(operator_joystick.getRawButton(5))
+            //  suction control
+            if (operator_joystick.getRawButton(5))
             {
-                spike.set(Relay.Value.kOn);
+                if (!suctionControlPushed)
+                {
+                    // first time here
+                    if (suctionOn)
+                    {
+                        spike.set(Relay.Value.kOff);
+                        suctionOn = false;
+                    }
+                    else
+                    {
+                        spike.set(Relay.Value.kOn);
+                        suctionOn = true;
+                    }
+                }
+                suctionControlPushed = true;
             }
             else
             {
-                spike.set(Relay.Value.kOff);
+                suctionControlPushed = false;
             }
            
-           // DashboardPacker.updateDashboard();
-
             Watchdog.getInstance().feed();
 
             /*if(RDC.joystick_1.getRawButton(6)||RDC.joystick_1.getRawButton(7))//Tank
@@ -620,8 +637,6 @@ public class Robot1100 extends IterativeRobot
             }
           */
 
-            //THIS ALSO IS NOT TESTED
-
             if (operator_joystick.getRawButton(7))
             {
                 if (operator_joystick.getRawButton(2))
@@ -725,6 +740,7 @@ public class Robot1100 extends IterativeRobot
 
             if(operator_joystick.getRawButton(8))
                 kicker.kick(m_count);
+
         }
 
         /*try

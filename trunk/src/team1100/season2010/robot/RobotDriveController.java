@@ -48,7 +48,9 @@ public class RobotDriveController
 
     private SteeringPID CRM_back;
     private SteeringPID CRM_front;
-
+    private DSKnob frontCentering;
+    private DSKnob rearCentering;
+    private DSKnob steeringGain;
 
     public RobotDriveController()
     {
@@ -84,23 +86,17 @@ public class RobotDriveController
 
         CRM_back = new SteeringPID(pot_back_channel, CRM_back_channel, true);
         CRM_front = new SteeringPID(pot_front_channel, CRM_front_channel, true);
+        frontCentering = new DSKnob(1);
+        rearCentering = new DSKnob(2);
+        steeringGain = new DSKnob(4);
 
         CRM_back.setOperatingRangePct(15);
-        CRM_back.setCenterPct(39);
-        CRM_back.setLinearPct(5);
+        CRM_back.setCenterPct(49);
+        CRM_back.setLinearPct(steeringGain.getCurrentValue() * 20);
         CRM_front.setOperatingRangePct(15);
-        CRM_front.setCenterPct(79);
-        CRM_front.setLinearPct(5);
-        //CRM_back.setInvertedMotor(true);
-        //CRM_front.setInvertedMotor(true);
-        //translationInit();
-
-        //CRM_front.setMinSpeed(.25);//.156
-        //CRM_front.setPCoeff(1); //Adjust this pcoeff w/ value from z-axis of joystick 2
-
-        //CRM_back.setMinSpeed(.25);//used to be .156
-        //CRM_back.setPCoeff(1);  //Adjust this pcoeff w/ value from z-axis of joystick 1
-
+        CRM_front.setCenterPct(74);
+        CRM_front.setLinearPct(steeringGain.getCurrentValue() * 20);
+ 
         limit_front_max = new DigitalInput(4,12);
         limit_front_min = new DigitalInput(4,11);
         limit_back_max = new DigitalInput(4,14);
@@ -181,7 +177,10 @@ public class RobotDriveController
 
     public String getPotVals()
     {
-        return "POT VALS: + \nCRM Front: " ;//+ CRM_front.getPot() + "\n\tCRM Back: " + CRM_back.getPot() + "\n";
+        return "POT VALS: + CRM Front: " + CRM_front.getPot() +
+                "\tctr: " + CRM_front.getCtr() +
+                "\tCRM Back: " + CRM_back.getPot() +
+                "\tctr: " + CRM_back.getCtr() + "\n";
     }
 
     public String getPWMVals()
@@ -198,15 +197,14 @@ public class RobotDriveController
 
     public void drive()
     {
+        // System.out.println(getPotVals());
         //if     (drive_type == 0)
         //    tankDrive();
-        try
-        {
             // the analog input ranges from about 0 to 3.2
-            CRM_front.setCenterPct(edu.wpi.first.wpilibj.DriverStation.getInstance().getEnhancedIO().getAnalogIn(1) * 33);
-            CRM_back.setCenterPct(edu.wpi.first.wpilibj.DriverStation.getInstance().getEnhancedIO().getAnalogIn(2) * 33);
-        }
-        catch (edu.wpi.first.wpilibj.DriverStationEnhancedIO.EnhancedIOException e){}
+        CRM_front.setCenterPct(frontCentering.getCurrentValue()*30);
+        CRM_back.setCenterPct(rearCentering.getCurrentValue()*30);
+        CRM_front.setLinearPct(steeringGain.getCurrentValue() * 20);
+        CRM_back.setLinearPct(steeringGain.getCurrentValue() * 20);
 
         if(joystick_type == 1) //2 Joystick
         {
@@ -269,6 +267,16 @@ public class RobotDriveController
         {
             swerveDriveAutonomous(speed);
         }
+    }
+
+    public void setSteeringCenter()
+    {
+        CRM_back.setCenterPct(rearCentering.getCurrentValue()*30);
+        CRM_back.setLinearPct(steeringGain.getCurrentValue() * 20);
+        CRM_front.setCenterPct(frontCentering.getCurrentValue()*30);
+        CRM_front.setLinearPct(steeringGain.getCurrentValue() * 20);
+        CRM_back.setDirection(0);
+        CRM_front.setDirection(0);
     }
 
     private void diagnostic()
@@ -465,8 +473,8 @@ public class RobotDriveController
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setDirection(-joystick_adjust_X * joystick_1.getX());
-        CRM_front.setDirection(-joystick_adjust_X * joystick_1.getX());
+        CRM_back.setDirection(-joystick_adjust_X * joystick_1.getX() * 0.4);
+        CRM_front.setDirection(-joystick_adjust_X * joystick_1.getX() * 0.4);
     }
 
     private void swerveRotationDriveOneJoystick()
@@ -478,8 +486,8 @@ public class RobotDriveController
         back_right_motor.set(drive_motor_speed_setpoint.getAverageValue());
         back_left_motor.set(drive_motor_speed_setpoint.getAverageValue());
 
-        CRM_back.setDirection(-joystick_adjust_X * joystick_1.getX());
-        CRM_front.setDirection(-joystick_adjust_X * joystick_1.getX());
+        CRM_back.setDirection(-joystick_adjust_X * joystick_1.getX() * 0.4);
+        CRM_front.setDirection(-joystick_adjust_X * joystick_1.getX() * 0.4);
     }
 
     /*private void rotate45_TwoJoystick()

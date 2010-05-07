@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.PIDController;
 public class SteeringPID {
 
     final double kLinearPct = 2.0;
-    final double kPidI = 0.01;
+    final double kPidI = 0.0;
     final double kPidD = 0.0;
     final int kOperatingRangePct = 20;
     final int kCenterPct = 50;
@@ -38,6 +38,7 @@ public class SteeringPID {
     boolean m_running = false;
     double m_PidI = kPidI;
     double m_PidD = kPidD;
+    double m_initialPotVal;
 
     /**
      * Construct a SteeringPID using default module slots
@@ -75,12 +76,26 @@ public class SteeringPID {
         m_scaledOut = new PIDOutputInverter(m_out, invertOutput);
         m_pid = new PIDController(m_PidP, m_PidI, m_PidD, m_in, m_scaledOut);
         m_pid.setOutputRange(kOutChannelMin, kOutChannelMax);
-
+        m_initialPotVal = m_in.pidGet();
         setOperatingRangePct(kOperatingRangePct);
         setCenterPct(kCenterPct);
         setLinearPct(kLinearPct);
     }
 
+    public double getInitialPositionPct()
+    {
+        return 100 * (m_initialPotVal - kInChannelMin)/(kInChannelMax - kInChannelMin);
+    }
+
+    public double getPot()
+    {
+        return m_in.pidGet();
+    }
+
+    public double getCtr()
+    {
+        return m_rangeCenterPct;
+    }
     /**
      * Specify the portion of the input range where the PIDController operates
      * in a linear (output not clipped) fashion. This is a percentage of the
@@ -94,6 +109,7 @@ public class SteeringPID {
        m_PidP = (kOutChannelMax - kOutChannelMin)/(m_operatingRange);
        // increase P so the motor input reaches its limit at m_linearPct/2 from the center
        m_PidP /= (pct/m_opRangePct);
+       m_PidI = m_PidP/20;
        // update the PIDController
        m_pid.setPID(m_PidP, m_PidI, m_PidD);
     }
@@ -169,8 +185,8 @@ public class SteeringPID {
                     "; D: " + m_pid.getD() +
                     "; width: " + m_operatingRange +
                     "; center: " + m_rangeCenter);
-         
          */
+         
 
     }
 }

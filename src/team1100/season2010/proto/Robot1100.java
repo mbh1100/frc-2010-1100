@@ -59,7 +59,6 @@ public class Robot1100 extends IterativeRobot
     public void robotInit()
     {
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
-        this.setPeriod(0.01);
         System.out.print("ROBOT STARTUP");
 
         RDC = new RobotDriveController(0,joystick_1_channel,joystick_2_channel,

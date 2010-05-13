@@ -94,7 +94,6 @@ public class Robot1100 extends IterativeRobot
         Watchdog.getInstance().feed();
         //camera = new Camera();
         //Sets periodic call rate to 10 milisecond intervals, i.e. 100Hz.
-        this.setPeriod(0.01);   //however, this appears to not actually have an effect (?)
         System.out.print("ROBOT STARTUP");  //and the period appears to be 50Hz according to Mark
 
         Watchdog.getInstance().feed();

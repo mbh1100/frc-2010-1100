@@ -174,8 +174,8 @@ public class SteeringPID {
             m_running = true;
         }
 
-        
-         /*    System.out.println("PID Error: " + m_pid.getError() +
+        /*
+          System.out.println("PID Error: " + m_pid.getError() +
                     "; Result: " + m_pid.get() +
                     "; Setpoint: "  + m_pid.getSetpoint() +
                     "; Joystick: " + direction +

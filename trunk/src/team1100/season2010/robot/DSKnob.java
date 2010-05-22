@@ -16,6 +16,7 @@ public class DSKnob
     private double m_initVal = 0;
     private double m_lastVal = 0;
     private DriverStation m_ds;
+    private boolean m_initialized = false;
 
     /**
      * Represents a knob on the DriverStation
@@ -47,10 +48,16 @@ public class DSKnob
             {
                 // update m_lastVal. We always return m_lastVal.
                 m_lastVal = val;
+                if (!m_initialized)
+                {
+                    m_initialized = true;
+                    m_initVal = val;
+                }
             }
         }
         catch (EnhancedIOException e)
         {
+            System.out.println("oops");
         }
         return m_lastVal;
     }
@@ -70,6 +77,10 @@ public class DSKnob
      */
     public double getDeltaValue()
     {
-        return getCurrentValue() - getInitialValue();
+        // make sure we don't give odd values if we initialize between
+        // getCurrentValue and getInitialValue.
+        boolean isInit = m_initialized;
+        double rval = getCurrentValue() - getInitialValue();
+        return isInit? rval : 0;
     }
 }

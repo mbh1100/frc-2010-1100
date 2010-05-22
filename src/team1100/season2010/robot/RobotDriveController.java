@@ -13,7 +13,7 @@ public class RobotDriveController
     private int back_pot_center  = 391;
     private int back_pot_min     = 318;
     private int front_pot_max    = 862;
-    private int front_pot_center = 790;
+    private int front_pot_center = 740;
     private int front_pot_min    = 714;
 
     private int drive_type;
@@ -91,7 +91,9 @@ public class RobotDriveController
         steeringGain = new DSKnob(4);
 
         CRM_back.setOperatingRangePct(15);
-        CRM_back.setCenterPct(49);
+        System.out.println("back: " + CRM_back.getInitialPositionPct() + "adj: " + rearCentering.getDeltaValue());
+        System.out.println("frnt: " + CRM_front.getInitialPositionPct() + "adj: " + frontCentering.getDeltaValue());
+        CRM_back.setCenterPct(50.5);
         CRM_back.setLinearPct(steeringGain.getCurrentValue() * 20);
         CRM_front.setOperatingRangePct(15);
         CRM_front.setCenterPct(74);
@@ -177,10 +179,13 @@ public class RobotDriveController
 
     public String getPotVals()
     {
-        return "POT VALS: + CRM Front: " + CRM_front.getPot() +
+        return "CRM Front: " + CRM_front.getPot() +
                 "\tctr: " + CRM_front.getCtr() +
-                "\tCRM Back: " + CRM_back.getPot() +
-                "\tctr: " + CRM_back.getCtr() + "\n";
+                "\tipp: " + CRM_front.getInitialPositionPct() + "\tknob: " + frontCentering.getDeltaValue() +
+                "\nCRM Back: " + CRM_back.getPot() +
+                "\tctr: " + CRM_back.getCtr() +
+                "\tipp: " + CRM_back.getInitialPositionPct() +
+                "\tknob: " + rearCentering.getDeltaValue() + "," + rearCentering.getInitialValue()+","+rearCentering.getCurrentValue()+"\n";
     }
 
     public String getPWMVals()
@@ -205,6 +210,8 @@ public class RobotDriveController
         CRM_back.setCenterPct(rearCentering.getCurrentValue()*30);
         CRM_front.setLinearPct(steeringGain.getCurrentValue() * 20);
         CRM_back.setLinearPct(steeringGain.getCurrentValue() * 20);
+//        System.out.println("back: " + CRM_back.getInitialPositionPct() + "adj: " + rearCentering.getDeltaValue());
+//        System.out.println("frnt: " + CRM_front.getInitialPositionPct() + "adj: " + frontCentering.getDeltaValue());
 
         if(joystick_type == 1) //2 Joystick
         {
@@ -257,6 +264,11 @@ public class RobotDriveController
 
     public void driveAutonomous(int driveType, double speed)
     {
+        CRM_front.setCenterPct(frontCentering.getCurrentValue()*30);
+        CRM_back.setCenterPct(rearCentering.getCurrentValue()*30);
+        CRM_front.setLinearPct(steeringGain.getCurrentValue() * 20);
+        CRM_back.setLinearPct(steeringGain.getCurrentValue() * 20);
+        
         if(driveType == 1)
         {
             CRM_back.setDirection(0);

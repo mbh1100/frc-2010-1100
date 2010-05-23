@@ -94,10 +94,11 @@ public class RobotDriveController
         System.out.println("back: " + CRM_back.getInitialPositionPct() + "adj: " + rearCentering.getDeltaValue());
         System.out.println("frnt: " + CRM_front.getInitialPositionPct() + "adj: " + frontCentering.getDeltaValue());
         CRM_back.setCenterPct(50.5);
-        CRM_back.setLinearPct(steeringGain.getCurrentValue() * 20);
+        double sGain = steeringGain.getCurrentValue();
+        CRM_back.setLinearPct((sGain == 0)? 20 : (sGain * 20));
         CRM_front.setOperatingRangePct(15);
         CRM_front.setCenterPct(74);
-        CRM_front.setLinearPct(steeringGain.getCurrentValue() * 20);
+        CRM_front.setLinearPct((sGain == 0)? 20 : (sGain * 20));
  
         limit_front_max = new DigitalInput(4,12);
         limit_front_min = new DigitalInput(4,11);

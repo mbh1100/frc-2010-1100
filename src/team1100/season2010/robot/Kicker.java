@@ -72,10 +72,10 @@ public class Kicker
       prev_count = -TIMING_DELAY;
   }
 
-  public void setHardSoft(boolean hard_or_soft)
+  public void setHardSoft(boolean kickHard)
   {
     //hard = true, soft = false
-    hardKick = hard_or_soft;
+    hardKick = kickHard;
 
     if(primed)
       if(hardKick)

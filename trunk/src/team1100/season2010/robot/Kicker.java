@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 //deal with time between commands by putting in lower Hz zone.
 public class Kicker
 {
+  private boolean primeAgain;
   private boolean hardKick;
   private boolean primed;
   private int prev_count;
@@ -37,6 +38,7 @@ public class Kicker
   public Kicker()
   {
     hardKick = true;
+    primeAgain = false;
     prime_state = 0;
     test_state = 0;
     prev_count = -TIMING_DELAY;
@@ -71,6 +73,17 @@ public class Kicker
       compressor.start();
       prev_count = -TIMING_DELAY;
   }
+
+  public void startPriming()
+    {
+      if (!primed)
+          primeAgain = true;
+    }
+
+  public boolean isReady()
+    {
+      return primed;
+    }
 
   public void setHardSoft(boolean kickHard)
   {
@@ -108,7 +121,8 @@ public class Kicker
         valve_2_B.set(false);
         valve_2_A.set(true);
         System.out.println("open latch");
-        prime_state++;
+        if (primeAgain)
+            prime_state++;
       }
       //ARM KICKER
       else if(prime_state == 1)
@@ -160,6 +174,7 @@ public class Kicker
           System.out.println("kicker set");
         primed = true;
         prime_state = 0;
+        primeAgain = false;
       }
 
     }

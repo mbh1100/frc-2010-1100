@@ -62,6 +62,7 @@ public class Robot1100 extends IterativeRobot
 
     boolean arm_button_pressed = false;
     HookLift lift;
+    boolean kickButtonOff = true;
 
     int prev_count;
 
@@ -697,9 +698,22 @@ public class Robot1100 extends IterativeRobot
 
                 Watchdog.getInstance().feed();
 
-            if(operator_joystick.getRawButton(8))
-                kicker.kick(m_count);
-
+            if(kickButtonOff && operator_joystick.getRawButton(8))
+            {
+                kickButtonOff = false;
+                if (kicker.isReady())
+                {
+                    kicker.kick(m_count);
+                }
+                else
+                {
+                    kicker.startPriming();
+                }
+            }
+            if (!operator_joystick.getRawButton(8))
+            {
+                kickButtonOff = true;
+            }
         }
 
         /*try
